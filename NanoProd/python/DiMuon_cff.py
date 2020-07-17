@@ -14,7 +14,7 @@ displacedTracks = cms.EDProducer(
 )
 displacedDiMuonTable = cms.EDProducer(
     'SimpleCompositeCandidateFlatTableProducer',
-    src = cms.InputTag("DiTrackBuilder"),
+    src = cms.InputTag("displacedTracks"),
     cut = cms.string(""),
     name = cms.string("DisplacedDiMuon"),
     doc = cms.string("DisplacedDiMuon Variable"),
@@ -25,7 +25,6 @@ displacedDiMuonTable = cms.EDProducer(
         CandVars,
         l1Idx = uint('l1_idx'),
         l2Idx = uint('l2_idx'),
-        kIdx = uint('k_idx'),
 
         # fit and vtx info
         chi2 = ufloat('sv_chi2'),
@@ -45,8 +44,8 @@ displacedDiMuonTable = cms.EDProducer(
         # mllErr_llfit = Var('userCand("dilepton").userFloat("fitted_massErr")', float), # this might not work
         # mll_fullfit = ufloat('fitted_mll'),
         # Cos(theta)
-        cos2D = ufloat('cos_theta_2D'),
-        fit_cos2D = ufloat('fitted_cos_theta_2D'),
+        # cos2D = ufloat('cos_theta_2D'),
+        # fit_cos2D = ufloat('fitted_cos_theta_2D'),
         # post-fit momentum
         fit_mass = ufloat('fitted_mass'),
         fit_massErr = ufloat('fitted_massErr'),
@@ -77,5 +76,6 @@ displacedDiMuonSequence = cms.Sequence(displacedTracks*displacedDiMuonTable)
 
 def nanoAOD_customizeDisplacedDiMuon(process):
     process.displacedDiMuonSequence = cms.Sequence(displacedDiMuonSequence)
-    process.nanoAOD_displacedDiMuon_step = cms.Path(process.nanoSequence + process.displacedDiMuonSequence + CountDisplacedDiMuon )
+    process.nanoAOD_step.insert(0, process.displacedDiMuonSequence)
+    # process.nanoAOD_displacedDiMuon_step = cms.Path(process.nanoSequence + process.displacedDiMuonSequence + CountDisplacedDiMuon )
     return process

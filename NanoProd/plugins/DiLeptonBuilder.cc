@@ -83,26 +83,25 @@ void DiLeptonBuilder<Lepton>::produce(edm::StreamID, edm::Event& evt, edm::Event
   edm::ESHandle<TransientTrackBuilder> tt_builder ;
   setup.get<TransientTrackRecord>().get("TransientTrackBuilder", tt_builder);
 
-
   //input
   edm::Handle<LeptonCollection> leptons;
   evt.getByToken(src_, leptons);
 
   // output
   std::unique_ptr<pat::CompositeCandidateCollection> ret_value(new pat::CompositeCandidateCollection());
-  
+
   for(size_t l1_idx = 0; l1_idx < leptons->size(); ++l1_idx) {
-    edm::Ptr<Lepton> l1_ptr(leptons, l1_idx);
-    if(!l1_selection_(*l1_ptr)) continue; 
+    const Lepton& l1 = leptons->at(l1_idx);
+    if(!l1_selection_(l1)) continue; 
     
     for(size_t l2_idx = l1_idx + 1; l2_idx < leptons->size(); ++l2_idx) {
-      edm::Ptr<Lepton> l2_ptr(leptons, l2_idx);
-      if(!l2_selection_(*l2_ptr)) continue;
+      const Lepton& l2 = leptons->at(l2_idx);
+      if(!l2_selection_(l2)) continue;
 
       pat::CompositeCandidate lepton_pair;
-      lepton_pair.setP4(getP4(*l1_ptr) + getP4(*l2_ptr));
-      lepton_pair.setCharge(l1_ptr->charge() + l2_ptr->charge());
-      lepton_pair.addUserFloat("lep_deltaR", reco::deltaR(*l1_ptr, *l2_ptr));
+      lepton_pair.setP4(getP4(l1) + getP4(l2));
+      lepton_pair.setCharge(l1.charge() + l2.charge());
+      lepton_pair.addUserFloat("lep_deltaR", reco::deltaR(l1, l2));
       // Put the lepton passing the corresponding selection
       lepton_pair.addUserInt("l1_idx", l1_idx );
       lepton_pair.addUserInt("l2_idx", l2_idx );
@@ -111,23 +110,25 @@ void DiLeptonBuilder<Lepton>::produce(edm::StreamID, edm::Event& evt, edm::Event
       // lepton_pair.addUserCand("l2", l2_ptr );
       if( !pre_vtx_selection_(lepton_pair) ) continue; // before making the SV, cut on the info we have
 
-
-      reco::TransientTrack tt_l1(tt_builder->build(getTrack(*l1_ptr)));
-      reco::TransientTrack tt_l2(tt_builder->build(getTrack(*l2_ptr)));
+      reco::TransientTrack tt_l1(tt_builder->build(getTrack(l1)));
+      reco::TransientTrack tt_l2(tt_builder->build(getTrack(l2)));
 
       KinVtxFitter fitter(
         {tt_l1, tt_l2},
         {LEP_MASS, LEP_MASS},
         {LEP_SIGMA, LEP_SIGMA} //some small sigma for the particle mass
         );
-
-      lepton_pair.setVertex(
-		     reco::Candidate::Point(
-					    fitter.fitted_vtx().x(),
-					    fitter.fitted_vtx().y(),
-					    fitter.fitted_vtx().z()
-					    )
-		     );
+      if (fitter.success()) {
+        lepton_pair.setVertex(
+          reco::Candidate::Point(
+                fitter.fitted_vtx().x(),
+                fitter.fitted_vtx().y(),
+                fitter.fitted_vtx().z()
+                )
+          );
+      } else {
+        lepton_pair.setVertex(reco::Candidate::Point());
+      }
 
       lepton_pair.addUserFloat("sv_chi2", fitter.chi2());
       lepton_pair.addUserFloat("sv_ndof", fitter.dof()); // float??
@@ -137,9 +138,9 @@ void DiLeptonBuilder<Lepton>::produce(edm::StreamID, edm::Event& evt, edm::Event
       lepton_pair.addUserFloat("vtx_x", lepton_pair.vx());
       lepton_pair.addUserFloat("vtx_y", lepton_pair.vy());
       lepton_pair.addUserFloat("vtx_z", lepton_pair.vz());
-      lepton_pair.addUserFloat("vtx_ex", sqrt(fitter.fitted_vtx_uncertainty().cxx()));
-      lepton_pair.addUserFloat("vtx_ey", sqrt(fitter.fitted_vtx_uncertainty().cyy()));
-      lepton_pair.addUserFloat("vtx_ez", sqrt(fitter.fitted_vtx_uncertainty().czz()));
+      lepton_pair.addUserFloat("vtx_ex", fitter.success() ? sqrt(fitter.fitted_vtx_uncertainty().cxx()) : -1.);
+      lepton_pair.addUserFloat("vtx_ey", fitter.success() ? sqrt(fitter.fitted_vtx_uncertainty().cyy()) : -1.);
+      lepton_pair.addUserFloat("vtx_ez", fitter.success() ? sqrt(fitter.fitted_vtx_uncertainty().czz()) : -1.);
      
  // if needed, add here more stuff
 
