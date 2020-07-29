@@ -77,5 +77,5 @@ displacedDiMuonSequence = cms.Sequence(displacedTracks*displacedDiMuonTable)
 def nanoAOD_customizeDisplacedDiMuon(process):
     process.displacedDiMuonSequence = cms.Sequence(displacedDiMuonSequence)
     process.nanoAOD_step.insert(0, process.displacedDiMuonSequence)
-    # process.nanoAOD_displacedDiMuon_step = cms.Path(process.nanoSequence + process.displacedDiMuonSequence + CountDisplacedDiMuon )
+    process.nanoAOD_displacedDiMuon_step = cms.Path(process.nanoSequenceMC + process.displacedDiMuonSequence + CountDisplacedDiMuon)
     return process

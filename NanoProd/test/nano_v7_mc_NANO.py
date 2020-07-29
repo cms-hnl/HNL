@@ -25,7 +25,7 @@ process.load('HNL.NanoProd.DiMuon_cff')
 process.add_(cms.Service('InitRootHandlers', EnableIMT = cms.untracked.bool(False)))
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(2000)
 )
 
 # Input source
@@ -69,20 +69,17 @@ process.nanoAOD_step = cms.Path(process.nanoSequenceMC)
 process.endjob_step = cms.EndPath(process.endOfProcess)
 process.NANOAODSIMoutput_step = cms.EndPath(process.NANOAODSIMoutput)
 
-# Schedule definition
-process.schedule = cms.Schedule(process.nanoAOD_step,process.endjob_step,process.NANOAODSIMoutput_step)
-from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
-associatePatAlgosToolsTask(process)
-
 # customisation of the process.
 from HNL.NanoProd.DiMuon_cff import nanoAOD_customizeDisplacedDiMuon
 nanoAOD_customizeDisplacedDiMuon(process)
 
-# Automatic addition of the customisation function from PhysicsTools.NanoAOD.nano_cff
 from PhysicsTools.NanoAOD.nano_cff import nanoAOD_customizeMC 
-
-#call to customisation function nanoAOD_customizeMC imported from PhysicsTools.NanoAOD.nano_cff
 process = nanoAOD_customizeMC(process)
+
+# Schedule definition
+process.schedule = cms.Schedule(process.nanoAOD_displacedDiMuon_step, process.endjob_step, process.NANOAODSIMoutput_step)
+from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
+associatePatAlgosToolsTask(process)
 
 # End of customisation functions
 
@@ -99,11 +96,19 @@ process.NANOAODSIMoutput.outputCommands = cms.untracked.vstring(
     'keep edmTriggerResults_*_*_*',  
     'keep String_*_genModel_*', 
     'keep nanoaodMergeableCounterTable_*Table_*_*', 
+    'keep *MergeableCounterTable_*_*_*', 
     'keep nanoaodUniqueString_nanoMetadata_*_*'
 )
 
+process.NANOAODSIMoutput.SelectEvents = cms.untracked.PSet(
+    SelectEvents=cms.vstring(
+        'nanoAOD_displacedDiMuon_step'
+    )
+)
+         
 
 # Customisation from command line
+process.MessageLogger.cerr.FwkReport.reportEvery=cms.untracked.int32(20)
 
 # Add early deletion of temporary data products to reduce peak memory need
 from Configuration.StandardSequences.earlyDeleteSettings_cff import customiseEarlyDelete

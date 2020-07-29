@@ -113,35 +113,44 @@ void DiLeptonBuilder<Lepton>::produce(edm::StreamID, edm::Event& evt, edm::Event
       reco::TransientTrack tt_l1(tt_builder->build(getTrack(l1)));
       reco::TransientTrack tt_l2(tt_builder->build(getTrack(l2)));
 
-      KinVtxFitter fitter(
-        {tt_l1, tt_l2},
-        {LEP_MASS, LEP_MASS},
-        {LEP_SIGMA, LEP_SIGMA} //some small sigma for the particle mass
-        );
-      if (fitter.success()) {
-        lepton_pair.setVertex(
-          reco::Candidate::Point(
-                fitter.fitted_vtx().x(),
-                fitter.fitted_vtx().y(),
-                fitter.fitted_vtx().z()
-                )
-          );
-      } else {
-        lepton_pair.setVertex(reco::Candidate::Point());
-      }
 
-      lepton_pair.addUserFloat("sv_chi2", fitter.chi2());
-      lepton_pair.addUserFloat("sv_ndof", fitter.dof()); // float??
-      lepton_pair.addUserFloat("sv_prob", fitter.prob());
-      lepton_pair.addUserFloat("fitted_mass", fitter.success() ? fitter.fitted_candidate().mass() : -1.);
-      lepton_pair.addUserFloat("fitted_massErr", fitter.success() ? sqrt(fitter.fitted_candidate().kinematicParametersError().matrix()(6,6)) : -1.);
-      lepton_pair.addUserFloat("vtx_x", lepton_pair.vx());
-      lepton_pair.addUserFloat("vtx_y", lepton_pair.vy());
-      lepton_pair.addUserFloat("vtx_z", lepton_pair.vz());
-      lepton_pair.addUserFloat("vtx_ex", fitter.success() ? sqrt(fitter.fitted_vtx_uncertainty().cxx()) : -1.);
-      lepton_pair.addUserFloat("vtx_ey", fitter.success() ? sqrt(fitter.fitted_vtx_uncertainty().cyy()) : -1.);
-      lepton_pair.addUserFloat("vtx_ez", fitter.success() ? sqrt(fitter.fitted_vtx_uncertainty().czz()) : -1.);
-     
+      try {
+        KinVtxFitter fitter(
+          {tt_l1, tt_l2},
+          {LEP_MASS, LEP_MASS},
+          {LEP_SIGMA, LEP_SIGMA} //some small sigma for the particle mass
+          );
+        if (fitter.success()) {
+          lepton_pair.setVertex(
+            reco::Candidate::Point(
+                  fitter.fitted_vtx().x(),
+                  fitter.fitted_vtx().y(),
+                  fitter.fitted_vtx().z()
+                  )
+            );
+        } else {
+          lepton_pair.setVertex(reco::Candidate::Point());
+        }
+
+        lepton_pair.addUserFloat("sv_chi2", fitter.chi2());
+        lepton_pair.addUserFloat("sv_ndof", fitter.dof()); // float??
+        lepton_pair.addUserFloat("sv_prob", fitter.prob());
+        lepton_pair.addUserFloat("fitted_mass", fitter.success() ? fitter.fitted_candidate().mass() : -1.);
+        lepton_pair.addUserFloat("fitted_massErr", fitter.success() ? sqrt(fitter.fitted_candidate().kinematicParametersError().matrix()(6,6)) : -1.);
+        lepton_pair.addUserFloat("vtx_x", lepton_pair.vx());
+        lepton_pair.addUserFloat("vtx_y", lepton_pair.vy());
+        lepton_pair.addUserFloat("vtx_z", lepton_pair.vz());
+        lepton_pair.addUserFloat("vtx_ex", fitter.success() ? sqrt(fitter.fitted_vtx_uncertainty().cxx()) : -1.);
+        lepton_pair.addUserFloat("vtx_ey", fitter.success() ? sqrt(fitter.fitted_vtx_uncertainty().cyy()) : -1.);
+        lepton_pair.addUserFloat("vtx_ez", fitter.success() ? sqrt(fitter.fitted_vtx_uncertainty().czz()) : -1.);
+      } catch (const std::exception& e) {
+        std::cout << e.what() << std::endl;
+        std::cout << "l1 pt, eta, phi, dxy, dz " << l1.pt() << ", " << l1.eta() << ", " << l1.phi() << ", " << getTrack(l1).dxy() << ", " << getTrack(l1).dz() << std::endl;
+        std::cout << "l2 pt, eta, phi, dxy, dz " << l2.pt() << ", " << l2.eta() << ", " << l2.phi() << ", " << getTrack(l2).dxy() << ", " << getTrack(l2).dz()<< std::endl;
+        for (const auto& str : {"sv_chi2", "sv_ndof", "sv_prob", "fitted_mass", "fitted_massErr", "vtx_x", "vtx_y", "vtx_z", "vtx_ex", "vtx_ey", "vtx_ez"}) {
+          lepton_pair.addUserFloat(str, -1.);
+        } 
+      } 
  // if needed, add here more stuff
 
       // cut on the SV info
