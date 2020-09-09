@@ -7,6 +7,10 @@ typedef SimpleFlatTableProducer<pat::CompositeCandidate> SimpleCompositeCandidat
 #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 typedef SimpleFlatTableProducer<reco::GsfTrack> SimpleGsfTrackFlatTableProducer;
 
+#include "DataFormats/TrackReco/interface/Track.h"
+typedef SimpleFlatTableProducer<reco::Track> SimpleTrackFlatTableProducer;
+
 #include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(SimpleCompositeCandidateFlatTableProducer);
 DEFINE_FWK_MODULE(SimpleGsfTrackFlatTableProducer);
+DEFINE_FWK_MODULE(SimpleTrackFlatTableProducer);

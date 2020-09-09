@@ -25,7 +25,7 @@ process.load('HNL.NanoProd.DiMuon_cff')
 process.add_(cms.Service('InitRootHandlers', EnableIMT = cms.untracked.bool(False)))
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(2000)
+    input = cms.untracked.int32(-1)
 )
 
 # Input source
