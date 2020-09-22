@@ -137,6 +137,7 @@ void DiLeptonBuilder<Lepton>::produce(edm::StreamID, edm::Event& evt, edm::Event
         lepton_pair.addUserFloat("sv_prob", fitter.prob());
         lepton_pair.addUserFloat("fitted_mass", fitter.success() ? fitter.fitted_candidate().mass() : -1.);
         lepton_pair.addUserFloat("fitted_massErr", fitter.success() ? sqrt(fitter.fitted_candidate().kinematicParametersError().matrix()(6,6)) : -1.);
+        lepton_pair.addUserFloat("fitted_pt", fitter.success() ? sqrt(pow(fitter.fitted_candidate().globalMomentum().x(), 2) +  pow(fitter.fitted_candidate().globalMomentum().y(), 2)) : -1.);
         lepton_pair.addUserFloat("vtx_x", lepton_pair.vx());
         lepton_pair.addUserFloat("vtx_y", lepton_pair.vy());
         lepton_pair.addUserFloat("vtx_z", lepton_pair.vz());
