@@ -92,6 +92,10 @@ process.NANOAODSIMoutput.outputCommands = cms.untracked.vstring(
     'drop nanoaodFlatTable_softActivity*Table_*_*',
     'drop nanoaodFlatTable_farPhotonTable_*_*',
     'drop nanoaodFlatTable_HTXSCategoryTable_*_*',
+    'drop nanoaodFlatTable_corrT1METJetTable_*_*',
+    'drop nanoaodFlatTable_sa*Table_*_*',
+    'drop nanoaodFlatTable_svCandidateTable_*_*',
+    'drop nanoaodFlatTable_rivet*Table_*_*',
     # it does not seem possible to skim the trigger information saved with existing tools
     'keep edmTriggerResults_*_*_*',  
     'keep String_*_genModel_*', 

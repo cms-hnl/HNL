@@ -148,7 +148,7 @@ void DiLeptonBuilder<Lepton>::produce(edm::StreamID, edm::Event& evt, edm::Event
         std::cout << e.what() << std::endl;
         std::cout << "l1 pt, eta, phi, dxy, dz " << l1.pt() << ", " << l1.eta() << ", " << l1.phi() << ", " << getTrack(l1).dxy() << ", " << getTrack(l1).dz() << std::endl;
         std::cout << "l2 pt, eta, phi, dxy, dz " << l2.pt() << ", " << l2.eta() << ", " << l2.phi() << ", " << getTrack(l2).dxy() << ", " << getTrack(l2).dz()<< std::endl;
-        for (const auto& str : {"sv_chi2", "sv_ndof", "sv_prob", "fitted_mass", "fitted_massErr", "vtx_x", "vtx_y", "vtx_z", "vtx_ex", "vtx_ey", "vtx_ez"}) {
+        for (const auto& str : {"sv_chi2", "sv_ndof", "sv_prob", "fitted_mass", "fitted_massErr", "fitted_pt", "vtx_x", "vtx_y", "vtx_z", "vtx_ex", "vtx_ey", "vtx_ez"}) {
           lepton_pair.addUserFloat(str, -1.);
         } 
       } 
