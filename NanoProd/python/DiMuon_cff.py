@@ -8,26 +8,26 @@ diDSAMuon = cms.EDProducer(
     lep1Selection = cms.string('pt > 3. && abs(eta) < 2.4 && numberOfValidHits>=10'),
     lep2Selection = cms.string('pt > 3. && abs(eta) < 2.4 && numberOfValidHits>=10'),
     preVtxSelection = cms.string('1'),
-    postVtxSelection = cms.string('1')
+    postVtxSelection = cms.string('userFloat("ndof") > 0')
 )
 
 patDSAMuon = cms.EDProducer(
     'MuTrackBuilder',
-    src1 = cms.InputTag('slimmedMuons'),
+    src1 = cms.InputTag('finalMuons'),
     src2 = cms.InputTag('displacedStandAloneMuons'),
-    lep1Selection = cms.string('1'),
+    lep1Selection = cms.string('isGlobalMuon && dB > 0.01'),
     lep2Selection = cms.string('pt > 3. && abs(eta) < 2.4 && numberOfValidHits>=10'),
     preVtxSelection = cms.string('1'),
-    postVtxSelection = cms.string('1')
+    postVtxSelection = cms.string('charge == 0 && userFloat("ndof") > 0')
 )
 
 diMuon = cms.EDProducer(
     'DiMuonBuilder',
-    src = cms.InputTag('slimmedMuons'),
-    lep1Selection = cms.string('1'),
-    lep2Selection = cms.string('1'),
+    src = cms.InputTag('finalMuons'),
+    lep1Selection = cms.string('isGlobalMuon && dB > 0.01'),
+    lep2Selection = cms.string('isGlobalMuon && dB > 0.01'),
     preVtxSelection = cms.string('1'),
-    postVtxSelection = cms.string('1')
+    postVtxSelection = cms.string('userFloat("ndof") > 0')
 )
 
 dsaTable = cms.EDProducer(
@@ -108,9 +108,10 @@ CountDisplacedDiMuon = cms.EDFilter("PATCandViewCountFilter",
 
 diDSAMuonTables = cms.Sequence(dsaTable*diDSAMuonTable)
 diDSAMuonSequence = cms.Sequence(diDSAMuon*dsaTable*diDSAMuonTable)
+patDSAMuonSequence = cms.Sequence(patDSAMuon*patDSAMuonTable)
 
 def nanoAOD_customizeDisplacedDiMuon(process):
-    process.diDSAMuonSequence = cms.Sequence(diDSAMuonSequence)
-    process.nanoAOD_step.insert(0, process.diDSAMuonSequence)
-    process.nanoAOD_displacedDiMuon_step = cms.Path(process.nanoSequenceMC + process.diDSAMuonSequence + CountDisplacedDiMuon)
+    process.displacedDiMuonSequence = cms.Sequence(diDSAMuonSequence*patDSAMuonSequence)
+    process.nanoAOD_step.insert(0, process.displacedDiMuonSequence)
+    process.nanoAOD_displacedDiMuon_step = cms.Path(process.nanoSequenceMC + process.displacedDiMuonSequence + CountDisplacedDiMuon)
     return process

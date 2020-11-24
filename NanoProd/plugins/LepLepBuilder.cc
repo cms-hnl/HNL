@@ -149,9 +149,9 @@ void DiLeptonBuilder<Lepton1, Lepton2>::produce(edm::StreamID, edm::Event& evt, 
         lepton_pair.addUserFloat("vtx_ey", fitter.success() ? sqrt(fitter.fitted_vtx_uncertainty().cyy()) : -1.);
         lepton_pair.addUserFloat("vtx_ez", fitter.success() ? sqrt(fitter.fitted_vtx_uncertainty().czz()) : -1.);
       } catch (const std::exception& e) {
-        std::cout << e.what() << std::endl;
-        std::cout << "l1 pt, eta, phi, dxy, dz " << l1.pt() << ", " << l1.eta() << ", " << l1.phi() << ", " << getTrack(l1).dxy() << ", " << getTrack(l1).dz() << std::endl;
-        std::cout << "l2 pt, eta, phi, dxy, dz " << l2.pt() << ", " << l2.eta() << ", " << l2.phi() << ", " << getTrack(l2).dxy() << ", " << getTrack(l2).dz()<< std::endl;
+        // std::cout << e.what() << std::endl;
+        // std::cout << "l1 pt, eta, phi, dxy, dz " << l1.pt() << ", " << l1.eta() << ", " << l1.phi() << ", " << getTrack(l1).dxy() << ", " << getTrack(l1).dz() << std::endl;
+        // std::cout << "l2 pt, eta, phi, dxy, dz " << l2.pt() << ", " << l2.eta() << ", " << l2.phi() << ", " << getTrack(l2).dxy() << ", " << getTrack(l2).dz()<< std::endl;
         for (const auto& str : {"sv_chi2", "sv_ndof", "sv_prob", "fitted_mass", "fitted_massErr", "fitted_pt", "vtx_x", "vtx_y", "vtx_z", "vtx_ex", "vtx_ey", "vtx_ez"}) {
           lepton_pair.addUserFloat(str, -1.);
         } 
