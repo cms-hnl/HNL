@@ -26,18 +26,20 @@ constexpr float LEP_SIGMA = 0.0000001;
 constexpr float LEP_MASS = 0.1056584;
 
 
-template<typename Lepton>
+template<typename Lepton1, typename Lepton2>
 class DiLeptonBuilder : public edm::global::EDProducer<> {
 
 public:
-  typedef std::vector<Lepton> LeptonCollection;
+  typedef std::vector<Lepton1> Lepton1Collection;
+  typedef std::vector<Lepton2> Lepton2Collection;
 
   explicit DiLeptonBuilder(const edm::ParameterSet &cfg):
     l1_selection_{cfg.getParameter<std::string>("lep1Selection")},
     l2_selection_{cfg.getParameter<std::string>("lep2Selection")},
     pre_vtx_selection_{cfg.getParameter<std::string>("preVtxSelection")},
     post_vtx_selection_{cfg.getParameter<std::string>("postVtxSelection")},
-    src_{consumes<LeptonCollection>( cfg.getParameter<edm::InputTag>("src") )} {
+    src1_{consumes<Lepton1Collection>( cfg.getParameter<edm::InputTag>("src1") )},
+    src2_{consumes<Lepton2Collection>( cfg.getParameter<edm::InputTag>("src2") )} {
        produces<pat::CompositeCandidateCollection>();
     }
 
@@ -48,54 +50,57 @@ public:
   static void fillDescriptions(edm::ConfigurationDescriptions &descriptions) {}
   
 private:
-  const StringCutObjectSelector<Lepton> l1_selection_; // cut on leading lepton
-  const StringCutObjectSelector<Lepton> l2_selection_; // cut on sub-leading lepton
+  const StringCutObjectSelector<Lepton1> l1_selection_; // cut on leading lepton
+  const StringCutObjectSelector<Lepton2> l2_selection_; // cut on sub-leading lepton
   const StringCutObjectSelector<pat::CompositeCandidate> pre_vtx_selection_; // cut on the di-lepton before the SV fit
   const StringCutObjectSelector<pat::CompositeCandidate> post_vtx_selection_; // cut on the di-lepton after the SV fit
-  const edm::EDGetTokenT<LeptonCollection> src_;
+  const edm::EDGetTokenT<Lepton1Collection> src1_;
+  const edm::EDGetTokenT<Lepton2Collection> src2_;
 };
 
 namespace {
-  template<typename Lepton>
-  const reco::Track& getTrack(const Lepton& lep) {
+    template<typename Lepton>
+    const reco::Track& getTrack(const Lepton& lep) {
     return *lep.bestTrack();
-  }
+    }
 
-  template<>
-  const reco::Track& getTrack<reco::Track>(const reco::Track& lep) {
+    template<>
+    const reco::Track& getTrack<reco::Track>(const reco::Track& lep) {
     return lep;
-  }
+    }
 
-  template<typename Lepton>
-  const math::XYZTLorentzVector getP4(const Lepton& lep) {
+    template<typename Lepton>
+    const math::XYZTLorentzVector getP4(const Lepton& lep) {
     return lep.p4();
-  }
+    }
 
-  template<>
-  const math::XYZTLorentzVector getP4<reco::Track>(const reco::Track& lep) {
+    template<>
+    const math::XYZTLorentzVector getP4<reco::Track>(const reco::Track& lep) {
     float px = lep.px(), py = lep.py(), pz = lep.pz();
     return math::XYZTLorentzVector{px, py, pz, sqrt(px*px + py*py + pz*pz)};
-  }
+    }
 }
-template<typename Lepton>
-void DiLeptonBuilder<Lepton>::produce(edm::StreamID, edm::Event& evt, edm::EventSetup const& setup) const {
+template<typename Lepton1, typename Lepton2>
+void DiLeptonBuilder<Lepton1, Lepton2>::produce(edm::StreamID, edm::Event& evt, edm::EventSetup const& setup) const {
   
   edm::ESHandle<TransientTrackBuilder> tt_builder ;
   setup.get<TransientTrackRecord>().get("TransientTrackBuilder", tt_builder);
 
   //input
-  edm::Handle<LeptonCollection> leptons;
-  evt.getByToken(src_, leptons);
+  edm::Handle<Lepton1Collection> leptons1;
+  evt.getByToken(src1_, leptons1);
+  edm::Handle<Lepton2Collection> leptons2;
+  evt.getByToken(src2_, leptons2);
 
   // output
   std::unique_ptr<pat::CompositeCandidateCollection> ret_value(new pat::CompositeCandidateCollection());
 
-  for(size_t l1_idx = 0; l1_idx < leptons->size(); ++l1_idx) {
-    const Lepton& l1 = leptons->at(l1_idx);
+  for(size_t l1_idx = 0; l1_idx < leptons1->size(); ++l1_idx) {
+    const Lepton1& l1 = leptons1->at(l1_idx);
     if(!l1_selection_(l1)) continue; 
     
-    for(size_t l2_idx = l1_idx + 1; l2_idx < leptons->size(); ++l2_idx) {
-      const Lepton& l2 = leptons->at(l2_idx);
+    for(size_t l2_idx = 0; l2_idx < leptons2->size(); ++l2_idx) {
+      const Lepton2& l2 = leptons2->at(l2_idx);
       if(!l2_selection_(l2)) continue;
 
       pat::CompositeCandidate lepton_pair;
@@ -112,7 +117,6 @@ void DiLeptonBuilder<Lepton>::produce(edm::StreamID, edm::Event& evt, edm::Event
 
       reco::TransientTrack tt_l1(tt_builder->build(getTrack(l1)));
       reco::TransientTrack tt_l2(tt_builder->build(getTrack(l2)));
-
 
       try {
         KinVtxFitter fitter(
@@ -164,13 +168,13 @@ void DiLeptonBuilder<Lepton>::produce(edm::StreamID, edm::Event& evt, edm::Event
 
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
-typedef DiLeptonBuilder<pat::Muon> DiMuonBuilder;
-typedef DiLeptonBuilder<pat::Electron> DiElectronBuilder;
-typedef DiLeptonBuilder<reco::Track> DiTrackBuilder;
+typedef DiLeptonBuilder<pat::Muon, pat::Electron> MuEleBuilder;
+typedef DiLeptonBuilder<pat::Muon, reco::Track> MuTrackBuilder;
+typedef DiLeptonBuilder<pat::Electron, reco::Track> EleTrackBuilder;
 
 #include "FWCore/Framework/interface/MakerMacros.h"
-DEFINE_FWK_MODULE(DiMuonBuilder);
-DEFINE_FWK_MODULE(DiElectronBuilder);
-DEFINE_FWK_MODULE(DiTrackBuilder);
+DEFINE_FWK_MODULE(MuEleBuilder);
+DEFINE_FWK_MODULE(MuTrackBuilder);
+DEFINE_FWK_MODULE(EleTrackBuilder);
 
 
