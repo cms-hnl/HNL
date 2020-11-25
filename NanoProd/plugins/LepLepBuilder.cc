@@ -30,7 +30,7 @@ template<typename Lepton1, typename Lepton2>
 class DiLeptonBuilder : public edm::global::EDProducer<> {
 
 public:
-  typedef std::vector<Lepton1> Lepton1Collection;
+  typedef edm::View<Lepton1> Lepton1Collection;
   typedef std::vector<Lepton2> Lepton2Collection;
 
   explicit DiLeptonBuilder(const edm::ParameterSet &cfg):

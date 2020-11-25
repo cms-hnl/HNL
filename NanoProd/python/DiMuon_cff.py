@@ -8,7 +8,7 @@ diDSAMuon = cms.EDProducer(
     lep1Selection = cms.string('pt > 3. && abs(eta) < 2.4 && numberOfValidHits>=10'),
     lep2Selection = cms.string('pt > 3. && abs(eta) < 2.4 && numberOfValidHits>=10'),
     preVtxSelection = cms.string('1'),
-    postVtxSelection = cms.string('userFloat("ndof") > 0')
+    postVtxSelection = cms.string('userFloat("sv_ndof") > 0')
 )
 
 patDSAMuon = cms.EDProducer(
@@ -18,7 +18,7 @@ patDSAMuon = cms.EDProducer(
     lep1Selection = cms.string('isGlobalMuon && dB > 0.01'),
     lep2Selection = cms.string('pt > 3. && abs(eta) < 2.4 && numberOfValidHits>=10'),
     preVtxSelection = cms.string('1'),
-    postVtxSelection = cms.string('charge == 0 && userFloat("ndof") > 0')
+    postVtxSelection = cms.string('charge == 0 && userFloat("sv_ndof") > 0')
 )
 
 diMuon = cms.EDProducer(
@@ -27,7 +27,7 @@ diMuon = cms.EDProducer(
     lep1Selection = cms.string('isGlobalMuon && dB > 0.01'),
     lep2Selection = cms.string('isGlobalMuon && dB > 0.01'),
     preVtxSelection = cms.string('1'),
-    postVtxSelection = cms.string('userFloat("ndof") > 0')
+    postVtxSelection = cms.string('userFloat("sv_ndof") > 0')
 )
 
 dsaTable = cms.EDProducer(
@@ -112,6 +112,24 @@ patDSAMuonSequence = cms.Sequence(patDSAMuon*patDSAMuonTable)
 
 def nanoAOD_customizeDisplacedDiMuon(process):
     process.displacedDiMuonSequence = cms.Sequence(diDSAMuonSequence*patDSAMuonSequence)
-    process.nanoAOD_step.insert(0, process.displacedDiMuonSequence)
-    process.nanoAOD_displacedDiMuon_step = cms.Path(process.nanoSequenceMC + process.displacedDiMuonSequence + CountDisplacedDiMuon)
+    # process.nanoAOD_step.insert(1000, process.displacedDiMuonSequence)
+    process.muonSequence.insert(1000, process.displacedDiMuonSequence)
+    process.nanoAOD_displacedDiMuon_step = cms.Path(process.nanoSequenceMC + CountDisplacedDiMuon)
+
+    process.finalMuons.cut = "pt > 3"
+
+    # Add additional muon time variables
+    process.muonTable.variables.rpcTimeInOut = Var("rpcTime().timeAtIpInOut", float, doc="RPC time in out")
+    process.muonTable.variables.timeInOut = Var("time().timeAtIpInOut", float, doc="time in out")
+    process.muonTable.variables.rpcTimeInOutErr = Var("rpcTime().timeAtIpInOutErr", float, doc="RPC time error in out")
+    process.muonTable.variables.timeInOutErr = Var("time().timeAtIpInOutErr", float, doc="time error in out")
+    process.muonTable.variables.rpcTimeNdof = Var("rpcTime().nDof", float, doc="RPC time ndof")
+    process.muonTable.variables.timeNdof = Var("time().nDof", float, doc="time ndof")
+
+    # Skim jet variables
+    process.jetTable.externalVariables = cms.PSet()
+    jet_vars_rm = ['btagCMVA', 'btagDeepB', 'btagCSVV2', 'qgl',  'chHEF', 'neHEF', 'chEmEF', 'neEmEF', 'muEF', 'chFPV0EF', 'chFPV1EF', 'chFPV2EF', 'chFPV3EF']
+    for v in jet_vars_rm:
+        delattr(process.jetTable.variables, v)
+
     return process
