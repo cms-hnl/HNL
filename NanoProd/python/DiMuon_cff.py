@@ -2,11 +2,17 @@ import FWCore.ParameterSet.Config as cms
 from PhysicsTools.NanoAOD.common_cff import CandVars, Var, P3Vars
 from HNL.NanoProd.common_cff import ufloat, uint, ubool
 
+selectedDSAMuons = cms.EDFilter(
+    'TrackSelector',
+    src = cms.InputTag('displacedStandAloneMuons'),
+    cut = cms.string('pt > 3. && abs(eta) < 2.4 && numberOfValidHits>=10')
+)
+
 diDSAMuon = cms.EDProducer(
     'DiTrackBuilder',
-    src = cms.InputTag('displacedStandAloneMuons'),
-    lep1Selection = cms.string('pt > 3. && abs(eta) < 2.4 && numberOfValidHits>=10'),
-    lep2Selection = cms.string('pt > 3. && abs(eta) < 2.4 && numberOfValidHits>=10'),
+    src = cms.InputTag('selectedDSAMuons'),
+    lep1Selection = cms.string('1'),
+    lep2Selection = cms.string('1'),
     preVtxSelection = cms.string('1'),
     postVtxSelection = cms.string('userFloat("sv_ndof") > 0')
 )
@@ -14,9 +20,9 @@ diDSAMuon = cms.EDProducer(
 patDSAMuon = cms.EDProducer(
     'MuTrackBuilder',
     src1 = cms.InputTag('finalMuons'),
-    src2 = cms.InputTag('displacedStandAloneMuons'),
-    lep1Selection = cms.string('isGlobalMuon && dB > 0.01'),
-    lep2Selection = cms.string('pt > 3. && abs(eta) < 2.4 && numberOfValidHits>=10'),
+    src2 = cms.InputTag('selectedDSAMuons'),
+    lep1Selection = cms.string('pt > 3. && isGlobalMuon && dB > 0.01'),
+    lep2Selection = cms.string('1'),
     preVtxSelection = cms.string('1'),
     postVtxSelection = cms.string('charge == 0 && userFloat("sv_ndof") > 0')
 )
@@ -24,15 +30,15 @@ patDSAMuon = cms.EDProducer(
 diMuon = cms.EDProducer(
     'DiMuonBuilder',
     src = cms.InputTag('finalMuons'),
-    lep1Selection = cms.string('isGlobalMuon && dB > 0.01'),
-    lep2Selection = cms.string('isGlobalMuon && dB > 0.01'),
+    lep1Selection = cms.string('pt > 3. && isGlobalMuon && dB > 0.01 && isLooseMuon'),
+    lep2Selection = cms.string('pt > 3. && isGlobalMuon && dB > 0.01 && isLooseMuon'),
     preVtxSelection = cms.string('1'),
     postVtxSelection = cms.string('userFloat("sv_ndof") > 0')
 )
 
 dsaTable = cms.EDProducer(
     'SimpleTrackFlatTableProducer',
-    src = cms.InputTag("displacedStandAloneMuons"),
+    src = cms.InputTag("selectedDSAMuons"),
     cut = cms.string("1"), # if we place a cut here, the indexing will be wrong
     name = cms.string("DSAMuons"),
     doc = cms.string("Displaced standalone muon tracks variables"),
@@ -59,6 +65,12 @@ dsaTable = cms.EDProducer(
         phi_error = Var('phiError', float, precision=8, doc='phi error'),
     )
 )
+
+dsaIsoTable = cms.EDProducer(
+    'TrackIsoTableProducer',
+    name = cms.string("DSAMuons")
+)
+
 
 diDSAMuonTable = cms.EDProducer(
     'SimpleCompositeCandidateFlatTableProducer',
@@ -99,22 +111,54 @@ patDSAMuonTable = diDSAMuonTable.clone(
     doc='PatDSAMuon Variable'
 )
 
-CountDisplacedDiMuon = cms.EDFilter("PATCandViewCountFilter",
-    minNumber = cms.uint32(0),
+diMuonTable = diDSAMuonTable.clone(
+    src='diMuon',
+    name='DiMuon',
+    doc='DiMuon Variable'
+)
+
+
+countDiDSAMuon = cms.EDFilter("PATCandViewCountFilter",
+    minNumber = cms.uint32(1),
     maxNumber = cms.uint32(999999),
     src = cms.InputTag("diDSAMuon")
-)    
+)
+
+countPatDSAMuon = cms.EDFilter("PATCandViewCountFilter",
+    minNumber = cms.uint32(1),
+    maxNumber = cms.uint32(999999),
+    src = cms.InputTag("patDSAMuon")
+)
+
+countDiMuon = cms.EDFilter("PATCandViewCountFilter",
+    minNumber = cms.uint32(1),
+    maxNumber = cms.uint32(999999),
+    src = cms.InputTag("diMuon")
+)
 
 
 diDSAMuonTables = cms.Sequence(dsaTable*diDSAMuonTable)
-diDSAMuonSequence = cms.Sequence(diDSAMuon*dsaTable*diDSAMuonTable)
+diDSAMuonSequence = cms.Sequence(selectedDSAMuons*diDSAMuon*dsaTable*dsaIsoTable*diDSAMuonTable)
 patDSAMuonSequence = cms.Sequence(patDSAMuon*patDSAMuonTable)
+diMuonSequence = cms.Sequence(diMuon*diMuonTable)
+
+
+isomu24 = cms.EDFilter('TriggerResultsFilter',
+    hltResults = cms.InputTag('TriggerResults', '', 'HLT'),
+    l1tResults = cms.InputTag(''),
+    l1tIgnoreMaskAndPrescale = cms.bool(False),
+    throw = cms.bool(True),
+    triggerConditions = cms.vstring('HLT_IsoMu24_v*'),
+    # mightGet = cms.optional.untracked.vstring
+)
 
 def nanoAOD_customizeDisplacedDiMuon(process):
-    process.displacedDiMuonSequence = cms.Sequence(diDSAMuonSequence*patDSAMuonSequence)
+    process.displacedDiMuonSequence = cms.Sequence(diDSAMuonSequence*patDSAMuonSequence*diMuonSequence)
     # process.nanoAOD_step.insert(1000, process.displacedDiMuonSequence)
     process.muonSequence.insert(1000, process.displacedDiMuonSequence)
-    process.nanoAOD_displacedDiMuon_step = cms.Path(process.nanoSequenceMC + CountDisplacedDiMuon)
+    process.nanoAOD_diDSAMuon_step = cms.Path(isomu24 + process.nanoSequenceMC + countDiDSAMuon)
+    process.nanoAOD_patDSAMuon_step = cms.Path(isomu24 + process.nanoSequenceMC + countPatDSAMuon)
+    process.nanoAOD_diMuon_step = cms.Path(isomu24 + process.nanoSequenceMC + countDiMuon)
 
     process.finalMuons.cut = "pt > 3"
 
