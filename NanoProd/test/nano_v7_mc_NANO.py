@@ -77,7 +77,7 @@ from PhysicsTools.NanoAOD.nano_cff import nanoAOD_customizeMC
 process = nanoAOD_customizeMC(process)
 
 # Schedule definition
-process.schedule = cms.Schedule(process.nanoAOD_displacedDiMuon_step, process.endjob_step, process.NANOAODSIMoutput_step)
+process.schedule = cms.Schedule(process.nanoAOD_diDSAMuon_step, process.nanoAOD_patDSAMuon_step, process.nanoAOD_diMuon_step, process.endjob_step, process.NANOAODSIMoutput_step)
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
 
@@ -106,7 +106,9 @@ process.NANOAODSIMoutput.outputCommands = cms.untracked.vstring(
 
 process.NANOAODSIMoutput.SelectEvents = cms.untracked.PSet(
     SelectEvents=cms.vstring(
-        'nanoAOD_displacedDiMuon_step'
+        'nanoAOD_diDSAMuon_step',
+        'nanoAOD_patDSAMuon_step',
+        'nanoAOD_diMuon_step',
     )
 )
          
