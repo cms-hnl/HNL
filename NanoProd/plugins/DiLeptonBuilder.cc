@@ -30,7 +30,7 @@ template<typename Lepton>
 class DiLeptonBuilder : public edm::global::EDProducer<> {
 
 public:
-  typedef std::vector<Lepton> LeptonCollection;
+  typedef edm::View<Lepton> LeptonCollection;
 
   explicit DiLeptonBuilder(const edm::ParameterSet &cfg):
     l1_selection_{cfg.getParameter<std::string>("lep1Selection")},
@@ -102,17 +102,20 @@ void DiLeptonBuilder<Lepton>::produce(edm::StreamID, edm::Event& evt, edm::Event
       lepton_pair.setP4(getP4(l1) + getP4(l2));
       lepton_pair.setCharge(l1.charge() + l2.charge());
       lepton_pair.addUserFloat("lep_deltaR", reco::deltaR(l1, l2));
+
       // Put the lepton passing the corresponding selection
-      lepton_pair.addUserInt("l1_idx", l1_idx );
-      lepton_pair.addUserInt("l2_idx", l2_idx );
-      // // Adding user cands would be helpful, but not possible for tracks
-      // lepton_pair.addUserCand("l1", l1_ptr );
-      // lepton_pair.addUserCand("l2", l2_ptr );
+      if (l1.pt() > l2.pt()) {
+        lepton_pair.addUserInt("l1_idx", l1_idx);
+        lepton_pair.addUserInt("l2_idx", l2_idx);
+      } else {
+        lepton_pair.addUserInt("l1_idx", l2_idx);
+        lepton_pair.addUserInt("l2_idx", l1_idx);
+      }
+
       if( !pre_vtx_selection_(lepton_pair) ) continue; // before making the SV, cut on the info we have
 
       reco::TransientTrack tt_l1(tt_builder->build(getTrack(l1)));
       reco::TransientTrack tt_l2(tt_builder->build(getTrack(l2)));
-
 
       try {
         KinVtxFitter fitter(
