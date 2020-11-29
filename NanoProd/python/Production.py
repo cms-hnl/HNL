@@ -18,8 +18,8 @@ options.register('eventList', '', VarParsing.multiplicity.singleton, VarParsing.
                  "List of events to process.")
 options.register('dumpPython', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool,
                  "Dump full config into stdout.")
-options.register('storeExtInfo', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool,
-                 "If true, store extended information required for tau reconstruction")
+options.register('mode', "dimuon", VarParsing.multiplicity.singleton, VarParsing.varType.string,
+                 "Run mode: dimuon or tau")
 options.parseArguments()
 
 
@@ -87,9 +87,17 @@ process.NANOAODSIMoutput_step = cms.EndPath(process.NANOAODSIMoutput)
 
 # Customisation of the process.
 
+
 process.load('HNL.NanoProd.DiMuon_cff')
-from HNL.NanoProd.DiMuon_cff import nanoAOD_customizeDisplacedDiMuon
-nanoAOD_customizeDisplacedDiMuon(process)
+if options.mode == "dimuon":
+    from HNL.NanoProd.DiMuon_cff import nanoAOD_customizeDisplacedDiMuon
+    nanoAOD_customizeDisplacedDiMuon(process)
+elif options.mode == "tau":
+    process.load('HNL.NanoProd.Tau_cff')
+    from HNL.NanoProd.Tau_cff import nanoAOD_customizeDisplacedTau
+    nanoAOD_customizeDisplacedTau(process)
+else:
+    raise RuntimeError('Mode "{}" not supported.'.format(options.mode))
 
 from PhysicsTools.NanoAOD.nano_cff import nanoAOD_customizeMC
 process = nanoAOD_customizeMC(process)
@@ -140,12 +148,14 @@ process.NANOAODSIMoutput.SelectEvents = cms.untracked.PSet(
 from Configuration.StandardSequences.earlyDeleteSettings_cff import customiseEarlyDelete
 process = customiseEarlyDelete(process)
 
+#process.patAlgosToolsTask.remove(process.updatedPatJetsTransientCorrectedAK8WithDeepInfo)
+#delattr(process, 'updatedPatJetsTransientCorrectedAK8WithDeepInfo')
+
 # Set report frequency
 process.load('FWCore.MessageLogger.MessageLogger_cfi')
-if process.maxEvents.input.value() > 10000 or process.maxEvents.input.value() < 0:
-     process.MessageLogger.cerr.FwkReport.reportEvery = 1000
-elif process.maxEvents.input.value() > 10:
-     process.MessageLogger.cerr.FwkReport.reportEvery = process.maxEvents.input.value() // 10
+x = process.maxEvents.input.value()
+x = x if x >= 0 else 10000
+process.MessageLogger.cerr.FwkReport.reportEvery = max(1, min(1000, x // 10))
 
 if options.dumpPython:
     print process.dumpPython()

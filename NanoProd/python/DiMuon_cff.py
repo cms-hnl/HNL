@@ -172,7 +172,8 @@ def nanoAOD_customizeDisplacedDiMuon(process):
 
     # Skim jet variables
     process.jetTable.externalVariables = cms.PSet()
-    jet_vars_rm = ['btagCMVA', 'btagDeepB', 'btagCSVV2', 'qgl',  'chHEF', 'neHEF', 'chEmEF', 'neEmEF', 'muEF', 'chFPV0EF', 'chFPV1EF', 'chFPV2EF', 'chFPV3EF']
+    jet_vars_rm = ['btagCMVA', 'btagDeepB', 'btagCSVV2', 'qgl',  'chHEF', 'neHEF', 'chEmEF', 'neEmEF', 'muEF',
+                   'chFPV0EF', 'chFPV1EF', 'chFPV2EF', 'chFPV3EF']
     for v in jet_vars_rm:
         delattr(process.jetTable.variables, v)
 
