@@ -40,7 +40,7 @@ dsaTable = cms.EDProducer(
     'SimpleTrackFlatTableProducer',
     src = cms.InputTag("selectedDSAMuons"),
     cut = cms.string("1"), # if we place a cut here, the indexing will be wrong
-    name = cms.string("DSAMuons"),
+    name = cms.string("DSAMuon"),
     doc = cms.string("Displaced standalone muon tracks variables"),
     singleton=cms.bool(False),
     extension=cms.bool(False),
@@ -68,7 +68,7 @@ dsaTable = cms.EDProducer(
 
 dsaIsoTable = cms.EDProducer(
     'TrackIsoTableProducer',
-    name = cms.string("DSAMuons")
+    name = cms.string("DSAMuon")
 )
 
 
@@ -156,9 +156,9 @@ def nanoAOD_customizeDisplacedDiMuon(process):
     process.displacedDiMuonSequence = cms.Sequence(diDSAMuonSequence*patDSAMuonSequence*diMuonSequence)
     # process.nanoAOD_step.insert(1000, process.displacedDiMuonSequence)
     process.muonSequence.insert(1000, process.displacedDiMuonSequence)
-    process.nanoAOD_diDSAMuon_step = cms.Path(isomu24 + process.nanoSequenceMC + countDiDSAMuon)
-    process.nanoAOD_patDSAMuon_step = cms.Path(isomu24 + process.nanoSequenceMC + countPatDSAMuon)
-    process.nanoAOD_diMuon_step = cms.Path(isomu24 + process.nanoSequenceMC + countDiMuon)
+    process.nanoAOD_diDSAMuon_step = cms.Path(process.nanoSequenceMC + isomu24 + countDiDSAMuon)
+    process.nanoAOD_patDSAMuon_step = cms.Path(process.nanoSequenceMC + isomu24 + countPatDSAMuon)
+    process.nanoAOD_diMuon_step = cms.Path(process.nanoSequenceMC + isomu24 + countDiMuon)
 
     process.finalMuons.cut = "pt > 3"
 
