@@ -51,7 +51,6 @@ private:
 namespace {
    
    pat::PFIsolation getMiniPFIsolation(const pat::PackedCandidateCollection& pfcands,
-                                  float pt,
                                   float eta,
                                   float phi,
                                   float drcut,
@@ -67,6 +66,7 @@ namespace {
        if (dr2 > drcut * drcut)
          continue;
        int id = pc.pdgId();
+       float pt = pc.pt();
        if (std::abs(id) == 211) {
          bool fromPV = (pc.fromPV() > 1 || fabs(pc.dz()) < dZ_cut);
          if (fromPV && dr2 > deadcone_ch * deadcone_ch) {
@@ -105,7 +105,7 @@ void TrackIsoTableProducer::produce(edm::StreamID, edm::Event& iEvent, const edm
   for (unsigned int i = 0; i < ncand; ++i) {
     const reco::Track& mu = (*muons)[i];
 
-    pat::PFIsolation iso = getMiniPFIsolation(*pfs, mu.pt(), mu.eta(), mu.phi(), 0.4);
+    pat::PFIsolation iso = getMiniPFIsolation(*pfs, mu.eta(), mu.phi(), 0.4);
 
     ch_iso[i] = iso.chargedHadronIso();
     nh_iso[i] = iso.neutralHadronIso();
