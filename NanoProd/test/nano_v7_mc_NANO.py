@@ -71,7 +71,7 @@ process.NANOAODSIMoutput_step = cms.EndPath(process.NANOAODSIMoutput)
 
 # customisation of the process.
 from HNL.NanoProd.DiMuon_cff import nanoAOD_customizeDisplacedDiMuon
-nanoAOD_customizeDisplacedDiMuon(process)
+nanoAOD_customizeDisplacedDiMuon(process, is_mc=True)
 
 from PhysicsTools.NanoAOD.nano_cff import nanoAOD_customizeMC 
 process = nanoAOD_customizeMC(process)
