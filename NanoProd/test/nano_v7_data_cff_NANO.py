@@ -119,6 +119,8 @@ process.NANOAODoutput.SelectEvents = cms.untracked.PSet(
     )
 )
 
+process.add_(cms.Service('InitRootHandlers', EnableIMT = cms.untracked.bool(False)))
+
 # End of customisation functions
 
 # Customisation from command line
