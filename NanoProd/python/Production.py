@@ -69,36 +69,24 @@ if len(options.lumiFile) > 0:
 if options.eventList != '':
     process.source.eventsToProcess = cms.untracked.VEventRange(re.split(',', options.eventList))
 
-if isData:
-    process.NANOAODoutput = cms.OutputModule("NanoAODOutputModule",
-        compressionAlgorithm = cms.untracked.string('LZMA'),
-        compressionLevel = cms.untracked.int32(9),
-        dataset = cms.untracked.PSet(
-            dataTier = cms.untracked.string('NANOAOD'),
-            filterName = cms.untracked.string('')
-        ),
-        fileName = cms.untracked.string(options.output),
-        outputCommands = process.NANOAODEventContent.outputCommands
-    )
-else:
-    process.NANOAODSIMoutput = cms.OutputModule("NanoAODOutputModule",
-        compressionAlgorithm = cms.untracked.string('LZMA'),
-        compressionLevel = cms.untracked.int32(9),
-        dataset = cms.untracked.PSet(
-            dataTier = cms.untracked.string('NANOAODSIM'),
-            filterName = cms.untracked.string('')
-        ),
-        fileName = cms.untracked.string(options.output),
-        outputCommands = process.NANOAODSIMEventContent.outputCommands
-    )
+process.NANOAODoutput = cms.OutputModule("NanoAODOutputModule",
+    compressionAlgorithm = cms.untracked.string('LZMA'),
+    compressionLevel = cms.untracked.int32(9),
+    dataset = cms.untracked.PSet(
+        dataTier = cms.untracked.string('NANOAOD'),
+        filterName = cms.untracked.string('')
+    ),
+    fileName = cms.untracked.string(options.output),
+    outputCommands = process.NANOAODEventContent.outputCommands
+)
+
+if not isData:
+    process.NANOAODoutput.outputCommands = process.NANOAODSIMEventContent.outputCommands
 
 # Path and EndPath definitions
-if isData:
-    process.nanoAOD_step = cms.Path(process.nanoSequence)
-    process.NANOAODoutput_step = cms.EndPath(process.NANOAODoutput)
-else:
-    process.nanoAOD_step = cms.Path(process.nanoSequenceMC)
-    process.NANOAODSIMoutput_step = cms.EndPath(process.NANOAODSIMoutput)
+process.nanoAOD_step = cms.Path(process.nanoSequence)
+process.NANOAODoutput_step = cms.EndPath(process.NANOAODoutput)
+
 
 process.endjob_step = cms.EndPath(process.endOfProcess)
 
@@ -114,33 +102,28 @@ elif options.mode == "tau":
 else:
     raise RuntimeError('Mode "{}" not supported.'.format(options.mode))
 
+    
 if isData:
     from PhysicsTools.NanoAOD.nano_cff import nanoAOD_customizeData
     process = nanoAOD_customizeData(process)
-    process.schedule = cms.Schedule(
-        process.nanoAOD_diDSAMuon_step,
-        process.nanoAOD_patDSAMuon_step,
-        process.nanoAOD_diMuon_step,
-        process.endjob_step,
-        process.NANOAODoutput_step
-    )
 else:
     from PhysicsTools.NanoAOD.nano_cff import nanoAOD_customizeMC
     process = nanoAOD_customizeMC(process)
-    process.schedule = cms.Schedule(
-        process.nanoAOD_diDSAMuon_step,
-        process.nanoAOD_patDSAMuon_step,
-        process.nanoAOD_diMuon_step,
-        process.endjob_step,
-        process.NANOAODSIMoutput_step
-    )
+
+process.schedule = cms.Schedule(
+    process.nanoAOD_diDSAMuon_step,
+    process.nanoAOD_patDSAMuon_step,
+    process.nanoAOD_diMuon_step,
+    process.endjob_step,
+    process.NANOAODoutput_step
+)
 
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
 
 # End of customisation functions
 
-outputCommands = cms.untracked.vstring(
+process.NANOAODoutput.outputCommands = cms.untracked.vstring(
     'drop *',
     'keep nanoaodFlatTable_*Table_*_*',
     'drop nanoaodFlatTable_fatJet*Table_*_*',
@@ -161,23 +144,13 @@ outputCommands = cms.untracked.vstring(
     'keep nanoaodUniqueString_nanoMetadata_*_*'
 )
 
-if isData:
-    process.NANOAODoutput.outputCommands = outputCommands
-else:
-    process.NANOAODSIMoutput.outputCommands = outputCommands
-
-selectEvents = cms.untracked.PSet(
+process.NANOAODoutput.SelectEvents = cms.untracked.PSet(
     SelectEvents=cms.vstring(
         'nanoAOD_diDSAMuon_step',
         'nanoAOD_patDSAMuon_step',
         'nanoAOD_diMuon_step',
     )
 )
-
-if isData:
-    process.NANOAODoutput.SelectEvents = selectEvents
-else:
-    process.NANOAODSIMoutput.SelectEvents = selectEvents
 
 # Add early deletion of temporary data products to reduce peak memory need
 from Configuration.StandardSequences.earlyDeleteSettings_cff import customiseEarlyDelete
