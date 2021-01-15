@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: nano_v7_mc_cff -s NANO --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --no_exec --conditions 102X_upgrade2018_realistic_v21 --era Run2_2018,run2_nanoAOD_102Xv1
+# with command line options: nano_v7_data_cff -s NANO --eventcontent NANOAOD --datatier NANOAOD --no_exec --conditions 102X_dataRun2_v13 --era Run2_2018,run2_nanoAOD_102Xv1
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
@@ -22,15 +22,13 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 process.load('HNL.NanoProd.DiMuon_cff')
 
-process.add_(cms.Service('InitRootHandlers', EnableIMT = cms.untracked.bool(False)))
-
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(-1)
 )
 
 # Input source
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('file:/eos/user/s/steggema/HNL/samples/M3mu.root'),
+    fileNames = cms.untracked.vstring('/store/data/Run2018A/SingleMuon/MINIAOD/17Sep2018-v2/90000/6FEE6A9B-E03C-A14F-AD01-914C76D0A721.root'),
     secondaryFileNames = cms.untracked.vstring()
 )
 
@@ -40,50 +38,59 @@ process.options = cms.untracked.PSet(
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    annotation = cms.untracked.string('nano_v7_mc_cff nevts:1'),
+    annotation = cms.untracked.string('nano_v7_data_cff nevts:1'),
     name = cms.untracked.string('Applications'),
     version = cms.untracked.string('$Revision: 1.19 $')
 )
 
 # Output definition
 
-process.NANOAODSIMoutput = cms.OutputModule("NanoAODOutputModule",
+process.NANOAODoutput = cms.OutputModule("NanoAODOutputModule",
     compressionAlgorithm = cms.untracked.string('LZMA'),
     compressionLevel = cms.untracked.int32(9),
     dataset = cms.untracked.PSet(
-        dataTier = cms.untracked.string('NANOAODSIM'),
+        dataTier = cms.untracked.string('NANOAOD'),
         filterName = cms.untracked.string('')
     ),
-    fileName = cms.untracked.string('nano_v7_mc_cff_NANO.root'),
-    outputCommands = process.NANOAODSIMEventContent.outputCommands
+    fileName = cms.untracked.string('nano_v7_data_cff_NANO.root'),
+    outputCommands = process.NANOAODEventContent.outputCommands
 )
 
 # Additional output definition
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '102X_upgrade2018_realistic_v21', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '102X_dataRun2_v13', '')
 
 # Path and EndPath definitions
-process.nanoAOD_step = cms.Path(process.nanoSequenceMC)
+process.nanoAOD_step = cms.Path(process.nanoSequence)
 process.endjob_step = cms.EndPath(process.endOfProcess)
-process.NANOAODSIMoutput_step = cms.EndPath(process.NANOAODSIMoutput)
-
-# customisation of the process.
-from HNL.NanoProd.DiMuon_cff import nanoAOD_customizeDisplacedDiMuon
-nanoAOD_customizeDisplacedDiMuon(process, is_mc=True)
-
-from PhysicsTools.NanoAOD.nano_cff import nanoAOD_customizeMC 
-process = nanoAOD_customizeMC(process)
+process.NANOAODoutput_step = cms.EndPath(process.NANOAODoutput)
 
 # Schedule definition
-process.schedule = cms.Schedule(process.nanoAOD_diDSAMuon_step, process.nanoAOD_patDSAMuon_step, process.nanoAOD_diMuon_step, process.endjob_step, process.NANOAODSIMoutput_step)
+process.schedule = cms.Schedule(process.nanoAOD_step,process.endjob_step,process.NANOAODoutput_step)
+from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
+associatePatAlgosToolsTask(process)
+
+# # customisation of the process.
+
+from HNL.NanoProd.DiMuon_cff import nanoAOD_customizeDisplacedDiMuon
+nanoAOD_customizeDisplacedDiMuon(process)
+
+# Automatic addition of the customisation function from PhysicsTools.NanoAOD.nano_cff
+from PhysicsTools.NanoAOD.nano_cff import nanoAOD_customizeData
+
+#call to customisation function nanoAOD_customizeMC imported from PhysicsTools.NanoAOD.nano_cff
+process = nanoAOD_customizeData(process)
+
+# Schedule definition
+process.schedule = cms.Schedule(process.nanoAOD_diDSAMuon_step, process.nanoAOD_patDSAMuon_step, process.nanoAOD_diMuon_step, process.endjob_step, process.NANOAODoutput_step)
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
 
 # End of customisation functions
 
-process.NANOAODSIMoutput.outputCommands = cms.untracked.vstring(
+process.NANOAODoutput.outputCommands = cms.untracked.vstring(
     'drop *', 
     'keep nanoaodFlatTable_*Table_*_*', 
     'drop nanoaodFlatTable_fatJet*Table_*_*',
@@ -104,14 +111,17 @@ process.NANOAODSIMoutput.outputCommands = cms.untracked.vstring(
     'keep nanoaodUniqueString_nanoMetadata_*_*'
 )
 
-process.NANOAODSIMoutput.SelectEvents = cms.untracked.PSet(
+process.NANOAODoutput.SelectEvents = cms.untracked.PSet(
     SelectEvents=cms.vstring(
         'nanoAOD_diDSAMuon_step',
         'nanoAOD_patDSAMuon_step',
         'nanoAOD_diMuon_step',
     )
 )
-         
+
+process.add_(cms.Service('InitRootHandlers', EnableIMT = cms.untracked.bool(False)))
+
+# End of customisation functions
 
 # Customisation from command line
 process.MessageLogger.cerr.FwkReport.reportEvery=cms.untracked.int32(20)
