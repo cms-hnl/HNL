@@ -156,14 +156,10 @@ def nanoAOD_customizeDisplacedDiMuon(process, is_mc=False):
     process.displacedDiMuonSequence = cms.Sequence(diDSAMuonSequence*patDSAMuonSequence*diMuonSequence)
     # process.nanoAOD_step.insert(1000, process.displacedDiMuonSequence)
     process.muonSequence.insert(1000, process.displacedDiMuonSequence)
-    if is_mc:
-        process.nanoAOD_diDSAMuon_step = cms.Path(process.nanoSequenceMC + isomu24 + countDiDSAMuon)
-        process.nanoAOD_patDSAMuon_step = cms.Path(process.nanoSequenceMC + isomu24 + countPatDSAMuon)
-        process.nanoAOD_diMuon_step = cms.Path(process.nanoSequenceMC + isomu24 + countDiMuon)
-    else:
-        process.nanoAOD_diDSAMuon_step = cms.Path(process.nanoSequence + isomu24 + countDiDSAMuon)
-        process.nanoAOD_patDSAMuon_step = cms.Path(process.nanoSequence + isomu24 + countPatDSAMuon)
-        process.nanoAOD_diMuon_step = cms.Path(process.nanoSequence + isomu24 + countDiMuon)
+    nano_seq = process.nanoSequenceMC if is_mc else process.nanoSequence
+    process.nanoAOD_diDSAMuon_step = cms.Path(nano_seq + isomu24 + countDiDSAMuon)
+    process.nanoAOD_patDSAMuon_step = cms.Path(nano_seq + isomu24 + countPatDSAMuon)
+    process.nanoAOD_diMuon_step = cms.Path(nano_seq + isomu24 + countDiMuon)
 
     process.finalMuons.cut = "pt > 3"
 
