@@ -16,6 +16,11 @@ PU="dbs:/Neutrino_E-10_gun/RunIISummer17PrePremix-PUAutumn18_102X_upgrade2018_re
 
 NAME=HeavyNeutrino_trilepton_M-${MASS}_${FLAV}_S${SEED}
 
+mkdir -p "$CFG"
+mkdir -p "Configuration/GenProduction/python/"
+mkdir -p "$OUT/HeavyNeutrino_trilepton_M-${MASS}_${FLAV}"
+mkdir -p "$OUT/interm_steps"
+
 FRAGMENT=Configuration/GenProduction/python/HeavyNeutrino_trilepton_M-${MASS}_${FLAV}-fragment.py
 if ! [ -f $FRAGMENT ]; then
     echo "Fragment $FRAGMENT not found. Creating it..."
