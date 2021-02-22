@@ -5,35 +5,39 @@ from HNL.NanoProd.common_cff import ufloat, uint, ubool
 selectedDSAMuons = cms.EDFilter(
     'TrackSelector',
     src = cms.InputTag('displacedStandAloneMuons'),
-    cut = cms.string('pt > 3. && abs(eta) < 2.4 && numberOfValidHits>=10')
+    cut = cms.string('pt > 5. && abs(eta) < 2.4 && numberOfValidHits > 15 && ptError/pt < 1. && chi2/ndof < 2.5')
 )
 
 diDSAMuon = cms.EDProducer(
     'DiTrackBuilder',
     src = cms.InputTag('selectedDSAMuons'),
+    srcVeto = cms.InputTag('finalMuons'),
     lep1Selection = cms.string('1'),
     lep2Selection = cms.string('1'),
     preVtxSelection = cms.string('1'),
-    postVtxSelection = cms.string('userFloat("sv_ndof") > 0')
+    postVtxSelection = cms.string('userFloat("sv_ndof") > 0'),
+    promptVetoSelection = cms.string('pt>24 && abs(eta) < 2.4 && isMediumMuon && dB<0.02')
 )
 
 patDSAMuon = cms.EDProducer(
     'MuTrackBuilder',
     src1 = cms.InputTag('finalMuons'),
     src2 = cms.InputTag('selectedDSAMuons'),
-    lep1Selection = cms.string('pt > 3. && isGlobalMuon && dB > 0.01'),
+    lep1Selection = cms.string('pt > 3. && isGlobalMuon && dB > 0.01 && isLooseMuon && abs(eta) < 2.4 && segmentCompatibility > 0.451'),
     lep2Selection = cms.string('1'),
     preVtxSelection = cms.string('1'),
-    postVtxSelection = cms.string('charge == 0 && userFloat("sv_ndof") > 0')
+    postVtxSelection = cms.string('userFloat("sv_ndof") > 0')
 )
 
 diMuon = cms.EDProducer(
     'DiMuonBuilder',
     src = cms.InputTag('finalMuons'),
-    lep1Selection = cms.string('pt > 3. && isGlobalMuon && dB > 0.01 && isLooseMuon'),
-    lep2Selection = cms.string('pt > 3. && isGlobalMuon && dB > 0.01 && isLooseMuon'),
+    srcVeto = cms.InputTag('finalMuons'),
+    lep1Selection = cms.string('pt > 3. && isGlobalMuon && dB > 0.01 && isLooseMuon && abs(eta) < 2.4 && segmentCompatibility > 0.451'),
+    lep2Selection = cms.string('pt > 3. && isGlobalMuon && dB > 0.01 && isLooseMuon && abs(eta) < 2.4 && segmentCompatibility > 0.451'),
     preVtxSelection = cms.string('1'),
-    postVtxSelection = cms.string('userFloat("sv_ndof") > 0')
+    postVtxSelection = cms.string('userFloat("sv_ndof") > 0'),
+    promptVetoSelection = cms.string('pt>24 && abs(eta) < 2.4 && isMediumMuon && dB<0.02')
 )
 
 dsaTable = cms.EDProducer(

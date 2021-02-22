@@ -20,6 +20,8 @@
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
 
+#include "DataFormats/PatCandidates/interface/Muon.h"
+
 #include "KinVtxFitter.h"
 
 constexpr float LEP_SIGMA = 0.0000001;
@@ -37,7 +39,9 @@ public:
     l2_selection_{cfg.getParameter<std::string>("lep2Selection")},
     pre_vtx_selection_{cfg.getParameter<std::string>("preVtxSelection")},
     post_vtx_selection_{cfg.getParameter<std::string>("postVtxSelection")},
-    src_{consumes<LeptonCollection>( cfg.getParameter<edm::InputTag>("src") )} {
+    prompt_veto_selection_{cfg.getParameter<std::string>("promptVetoSelection")},
+    src_{consumes<LeptonCollection>( cfg.getParameter<edm::InputTag>("src") )},
+    src_veto_{consumes<std::vector<pat::Muon> >( cfg.getParameter<edm::InputTag>("srcVeto") )} {
        produces<pat::CompositeCandidateCollection>();
     }
 
@@ -52,7 +56,9 @@ private:
   const StringCutObjectSelector<Lepton> l2_selection_; // cut on sub-leading lepton
   const StringCutObjectSelector<pat::CompositeCandidate> pre_vtx_selection_; // cut on the di-lepton before the SV fit
   const StringCutObjectSelector<pat::CompositeCandidate> post_vtx_selection_; // cut on the di-lepton after the SV fit
+  const StringCutObjectSelector<pat::Muon> prompt_veto_selection_; // cut on leading lepton
   const edm::EDGetTokenT<LeptonCollection> src_;
+  const edm::EDGetTokenT<std::vector<pat::Muon> > src_veto_;
 };
 
 namespace {
@@ -87,8 +93,19 @@ void DiLeptonBuilder<Lepton>::produce(edm::StreamID, edm::Event& evt, edm::Event
   edm::Handle<LeptonCollection> leptons;
   evt.getByToken(src_, leptons);
 
+  edm::Handle<std::vector<pat::Muon> > veto_muons;
+  evt.getByToken(src_veto_, veto_muons);
+
   // output
   std::unique_ptr<pat::CompositeCandidateCollection> ret_value(new pat::CompositeCandidateCollection());
+
+  std::vector<size_t> prompt_indices;
+  for (size_t idx = 0; idx < veto_muons->size(); ++idx) {
+    const pat::Muon& prompt = veto_muons->at(idx);
+    if (prompt_veto_selection_(prompt)) {
+      prompt_indices.push_back(idx);
+    }
+  }
 
   for(size_t l1_idx = 0; l1_idx < leptons->size(); ++l1_idx) {
     const Lepton& l1 = leptons->at(l1_idx);
@@ -97,6 +114,17 @@ void DiLeptonBuilder<Lepton>::produce(edm::StreamID, edm::Event& evt, edm::Event
     for(size_t l2_idx = l1_idx + 1; l2_idx < leptons->size(); ++l2_idx) {
       const Lepton& l2 = leptons->at(l2_idx);
       if(!l2_selection_(l2)) continue;
+
+      bool fail = false;
+      for (size_t idx : prompt_indices) {
+        if (reco::deltaR(l1, veto_muons->at(idx)) < 0.3 || reco::deltaR(l2, veto_muons->at(idx)) < 0.3) {
+          fail = true;
+          break;
+        }
+      }
+      if (fail) {
+        continue;
+      }
 
       pat::CompositeCandidate lepton_pair;
       lepton_pair.setP4(getP4(l1) + getP4(l2));
@@ -165,7 +193,6 @@ void DiLeptonBuilder<Lepton>::produce(edm::StreamID, edm::Event& evt, edm::Event
   evt.put(std::move(ret_value));
 }
 
-#include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 typedef DiLeptonBuilder<pat::Muon> DiMuonBuilder;
 typedef DiLeptonBuilder<pat::Electron> DiElectronBuilder;
