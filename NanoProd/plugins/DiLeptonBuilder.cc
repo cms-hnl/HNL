@@ -39,9 +39,8 @@ public:
     l2_selection_{cfg.getParameter<std::string>("lep2Selection")},
     pre_vtx_selection_{cfg.getParameter<std::string>("preVtxSelection")},
     post_vtx_selection_{cfg.getParameter<std::string>("postVtxSelection")},
-    prompt_veto_selection_{cfg.getParameter<std::string>("promptVetoSelection")},
     src_{consumes<LeptonCollection>( cfg.getParameter<edm::InputTag>("src") )},
-    src_veto_{consumes<edm::View<pat::Muon> >( cfg.getParameter<edm::InputTag>("srcVeto") )} {
+    src_veto_{consumes<edm::View<reco::Candidate> >( cfg.getParameter<edm::InputTag>("srcVeto") )} {
        produces<pat::CompositeCandidateCollection>();
     }
 
@@ -56,9 +55,8 @@ private:
   const StringCutObjectSelector<Lepton> l2_selection_; // cut on sub-leading lepton
   const StringCutObjectSelector<pat::CompositeCandidate> pre_vtx_selection_; // cut on the di-lepton before the SV fit
   const StringCutObjectSelector<pat::CompositeCandidate> post_vtx_selection_; // cut on the di-lepton after the SV fit
-  const StringCutObjectSelector<pat::Muon> prompt_veto_selection_; // cut on leading lepton
   const edm::EDGetTokenT<LeptonCollection> src_;
-  const edm::EDGetTokenT<edm::View<pat::Muon> > src_veto_;
+  const edm::EDGetTokenT<edm::View<reco::Candidate> > src_veto_;
 };
 
 namespace {
@@ -82,7 +80,27 @@ namespace {
     float px = lep.px(), py = lep.py(), pz = lep.pz();
     return math::XYZTLorentzVector{px, py, pz, sqrt(px*px + py*py + pz*pz)};
   }
+
+  bool dr_match(const reco::Candidate& lep, const edm::View<reco::Candidate>& veto_leptons) {
+    for (const auto& cand : veto_leptons) {
+      if (reco::deltaR(lep, cand) < 0.3) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool dr_match(const reco::Track& lep, const edm::View<reco::Candidate>& veto_leptons) {
+    for (const auto& cand : veto_leptons) {
+      if (reco::deltaR(lep, cand) < 0.3) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 }
+
 template<typename Lepton>
 void DiLeptonBuilder<Lepton>::produce(edm::StreamID, edm::Event& evt, edm::EventSetup const& setup) const {
   
@@ -93,38 +111,22 @@ void DiLeptonBuilder<Lepton>::produce(edm::StreamID, edm::Event& evt, edm::Event
   edm::Handle<LeptonCollection> leptons;
   evt.getByToken(src_, leptons);
 
-  edm::Handle<edm::View<pat::Muon> > veto_muons;
-  evt.getByToken(src_veto_, veto_muons);
+  edm::Handle<edm::View<reco::Candidate> > veto_leptons;
+  evt.getByToken(src_veto_, veto_leptons);
 
   // output
   std::unique_ptr<pat::CompositeCandidateCollection> ret_value(new pat::CompositeCandidateCollection());
 
-  std::vector<size_t> prompt_indices;
-  for (size_t idx = 0; idx < veto_muons->size(); ++idx) {
-    const pat::Muon& prompt = veto_muons->at(idx);
-    if (prompt_veto_selection_(prompt)) {
-      prompt_indices.push_back(idx);
-    }
-  }
-
   for(size_t l1_idx = 0; l1_idx < leptons->size(); ++l1_idx) {
     const Lepton& l1 = leptons->at(l1_idx);
-    if(!l1_selection_(l1)) continue; 
+    if (!l1_selection_(l1)) continue; 
+    if (dr_match(l1, *veto_leptons)) continue;
+
     
     for(size_t l2_idx = l1_idx + 1; l2_idx < leptons->size(); ++l2_idx) {
       const Lepton& l2 = leptons->at(l2_idx);
-      if(!l2_selection_(l2)) continue;
-
-      bool fail = false;
-      for (size_t idx : prompt_indices) {
-        if (reco::deltaR(l1, veto_muons->at(idx)) < 0.3 || reco::deltaR(l2, veto_muons->at(idx)) < 0.3) {
-          fail = true;
-          break;
-        }
-      }
-      if (fail) {
-        continue;
-      }
+      if (!l2_selection_(l2)) continue;
+      if (dr_match(l2, *veto_leptons)) continue;
 
       pat::CompositeCandidate lepton_pair;
       lepton_pair.setP4(getP4(l1) + getP4(l2));

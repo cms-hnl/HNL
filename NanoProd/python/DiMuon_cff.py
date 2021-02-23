@@ -8,15 +8,21 @@ selectedDSAMuons = cms.EDFilter(
     cut = cms.string('pt > 5. && abs(eta) < 2.4 && numberOfValidHits > 15 && ptError/pt < 1. && chi2/ndof < 2.5')
 )
 
+vetoMuons = cms.EDFilter(
+    'PATMuonRefSelector',
+    src = cms.InputTag('slimmedMuons'),
+    cut = cms.string('pt>24 && abs(eta) < 2.4 && isMediumMuon && dB<0.02')
+)
+
+
 diDSAMuon = cms.EDProducer(
     'DiTrackBuilder',
     src = cms.InputTag('selectedDSAMuons'),
-    srcVeto = cms.InputTag('finalMuons'),
+    srcVeto = cms.InputTag('vetoMuons'),
     lep1Selection = cms.string('1'),
     lep2Selection = cms.string('1'),
     preVtxSelection = cms.string('1'),
-    postVtxSelection = cms.string('userFloat("sv_ndof") > 0'),
-    promptVetoSelection = cms.string('pt>24 && abs(eta) < 2.4 && isMediumMuon && dB<0.02')
+    postVtxSelection = cms.string('userFloat("sv_ndof") > 0')
 )
 
 patDSAMuon = cms.EDProducer(
@@ -32,12 +38,11 @@ patDSAMuon = cms.EDProducer(
 diMuon = cms.EDProducer(
     'DiMuonBuilder',
     src = cms.InputTag('finalMuons'),
-    srcVeto = cms.InputTag('finalMuons'),
+    srcVeto = cms.InputTag('vetoMuons'),
     lep1Selection = cms.string('pt > 3. && isGlobalMuon && dB > 0.01 && isLooseMuon && abs(eta) < 2.4 && segmentCompatibility > 0.451'),
     lep2Selection = cms.string('pt > 3. && isGlobalMuon && dB > 0.01 && isLooseMuon && abs(eta) < 2.4 && segmentCompatibility > 0.451'),
     preVtxSelection = cms.string('1'),
-    postVtxSelection = cms.string('userFloat("sv_ndof") > 0'),
-    promptVetoSelection = cms.string('pt>24 && abs(eta) < 2.4 && isMediumMuon && dB<0.02')
+    postVtxSelection = cms.string('userFloat("sv_ndof") > 0')
 )
 
 dsaTable = cms.EDProducer(
@@ -142,7 +147,7 @@ countDiMuon = cms.EDFilter("PATCandViewCountFilter",
 
 
 diDSAMuonTables = cms.Sequence(dsaTable*diDSAMuonTable)
-diDSAMuonSequence = cms.Sequence(selectedDSAMuons*diDSAMuon*dsaTable*dsaIsoTable*diDSAMuonTable)
+diDSAMuonSequence = cms.Sequence(selectedDSAMuons*vetoMuons*diDSAMuon*dsaTable*dsaIsoTable*diDSAMuonTable)
 patDSAMuonSequence = cms.Sequence(patDSAMuon*patDSAMuonTable)
 diMuonSequence = cms.Sequence(diMuon*diMuonTable)
 
