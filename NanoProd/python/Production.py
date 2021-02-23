@@ -116,6 +116,7 @@ process.schedule = cms.Schedule(
     process.nanoAOD_patDSAMuon_step,
     process.nanoAOD_diMuon_step,
     process.nanoAOD_diSTA_step,
+    process.nanoAOD_patSTA_step,
     process.endjob_step,
     process.NANOAODoutput_step
 )
@@ -151,7 +152,8 @@ process.NANOAODoutput.SelectEvents = cms.untracked.PSet(
         'nanoAOD_diDSAMuon_step',
         'nanoAOD_patDSAMuon_step',
         'nanoAOD_diMuon_step',
-        'process.nanoAOD_diSTA_step'
+        'nanoAOD_diSTA_step',
+        'nanoAOD_patSTA_step'
     )
 )
 
