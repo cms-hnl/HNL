@@ -41,7 +41,7 @@ public:
     post_vtx_selection_{cfg.getParameter<std::string>("postVtxSelection")},
     prompt_veto_selection_{cfg.getParameter<std::string>("promptVetoSelection")},
     src_{consumes<LeptonCollection>( cfg.getParameter<edm::InputTag>("src") )},
-    src_veto_{consumes<std::vector<pat::Muon> >( cfg.getParameter<edm::InputTag>("srcVeto") )} {
+    src_veto_{consumes<edm::View<pat::Muon> >( cfg.getParameter<edm::InputTag>("srcVeto") )} {
        produces<pat::CompositeCandidateCollection>();
     }
 
@@ -58,7 +58,7 @@ private:
   const StringCutObjectSelector<pat::CompositeCandidate> post_vtx_selection_; // cut on the di-lepton after the SV fit
   const StringCutObjectSelector<pat::Muon> prompt_veto_selection_; // cut on leading lepton
   const edm::EDGetTokenT<LeptonCollection> src_;
-  const edm::EDGetTokenT<std::vector<pat::Muon> > src_veto_;
+  const edm::EDGetTokenT<edm::View<pat::Muon> > src_veto_;
 };
 
 namespace {
@@ -93,7 +93,7 @@ void DiLeptonBuilder<Lepton>::produce(edm::StreamID, edm::Event& evt, edm::Event
   edm::Handle<LeptonCollection> leptons;
   evt.getByToken(src_, leptons);
 
-  edm::Handle<std::vector<pat::Muon> > veto_muons;
+  edm::Handle<edm::View<pat::Muon> > veto_muons;
   evt.getByToken(src_veto_, veto_muons);
 
   // output
