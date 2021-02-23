@@ -77,7 +77,8 @@ process.NANOAODoutput = cms.OutputModule("NanoAODOutputModule",
         filterName = cms.untracked.string('')
     ),
     fileName = cms.untracked.string(options.output),
-    outputCommands = process.NANOAODEventContent.outputCommands
+    outputCommands = process.NANOAODEventContent.outputCommands,
+    saveProvenance= cms.untracked.bool(False)
 )
 
 if not isData:
@@ -114,6 +115,7 @@ process.schedule = cms.Schedule(
     process.nanoAOD_diDSAMuon_step,
     process.nanoAOD_patDSAMuon_step,
     process.nanoAOD_diMuon_step,
+    process.nanoAOD_diSTA_step,
     process.endjob_step,
     process.NANOAODoutput_step
 )
@@ -137,11 +139,11 @@ process.NANOAODoutput.outputCommands = cms.untracked.vstring(
     'drop nanoaodFlatTable_svCandidateTable_*_*',
     'drop nanoaodFlatTable_rivet*Table_*_*',
     # it does not seem possible to skim the trigger information saved with existing tools
-    'keep edmTriggerResults_*_*_*',
+    # 'keep edmTriggerResults_*_*_*',
     'keep String_*_genModel_*',
     'keep nanoaodMergeableCounterTable_*Table_*_*',
     'keep *MergeableCounterTable_*_*_*',
-    'keep nanoaodUniqueString_nanoMetadata_*_*'
+    # 'keep nanoaodUniqueString_nanoMetadata_*_*'
 )
 
 process.NANOAODoutput.SelectEvents = cms.untracked.PSet(
@@ -149,6 +151,7 @@ process.NANOAODoutput.SelectEvents = cms.untracked.PSet(
         'nanoAOD_diDSAMuon_step',
         'nanoAOD_patDSAMuon_step',
         'nanoAOD_diMuon_step',
+        'process.nanoAOD_diSTA_step'
     )
 )
 

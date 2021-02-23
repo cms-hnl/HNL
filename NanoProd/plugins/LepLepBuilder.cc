@@ -39,7 +39,8 @@ public:
     pre_vtx_selection_{cfg.getParameter<std::string>("preVtxSelection")},
     post_vtx_selection_{cfg.getParameter<std::string>("postVtxSelection")},
     src1_{consumes<Lepton1Collection>( cfg.getParameter<edm::InputTag>("src1") )},
-    src2_{consumes<Lepton2Collection>( cfg.getParameter<edm::InputTag>("src2") )} {
+    src2_{consumes<Lepton2Collection>( cfg.getParameter<edm::InputTag>("src2") )},
+    src_veto_{consumes<edm::View<reco::Candidate> >( cfg.getParameter<edm::InputTag>("srcVeto") )} {
        produces<pat::CompositeCandidateCollection>();
     }
 
@@ -56,6 +57,7 @@ private:
   const StringCutObjectSelector<pat::CompositeCandidate> post_vtx_selection_; // cut on the di-lepton after the SV fit
   const edm::EDGetTokenT<Lepton1Collection> src1_;
   const edm::EDGetTokenT<Lepton2Collection> src2_;
+  const edm::EDGetTokenT<edm::View<reco::Candidate> > src_veto_;
 };
 
 namespace {
@@ -79,6 +81,24 @@ namespace {
     float px = lep.px(), py = lep.py(), pz = lep.pz();
     return math::XYZTLorentzVector{px, py, pz, sqrt(px*px + py*py + pz*pz)};
     }
+
+    bool dr_match(const reco::Candidate& lep, const edm::View<reco::Candidate>& veto_leptons) {
+      for (const auto& cand : veto_leptons) {
+        if (reco::deltaR(lep, cand) < 0.3) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    bool dr_match(const reco::Track& lep, const edm::View<reco::Candidate>& veto_leptons) {
+      for (const auto& cand : veto_leptons) {
+        if (reco::deltaR(lep, cand) < 0.3) {
+          return true;
+        }
+      }
+      return false;
+    }
 }
 template<typename Lepton1, typename Lepton2>
 void DiLeptonBuilder<Lepton1, Lepton2>::produce(edm::StreamID, edm::Event& evt, edm::EventSetup const& setup) const {
@@ -91,6 +111,8 @@ void DiLeptonBuilder<Lepton1, Lepton2>::produce(edm::StreamID, edm::Event& evt, 
   evt.getByToken(src1_, leptons1);
   edm::Handle<Lepton2Collection> leptons2;
   evt.getByToken(src2_, leptons2);
+  edm::Handle<edm::View<reco::Candidate> > veto_leptons;
+  evt.getByToken(src_veto_, veto_leptons);
 
   // output
   std::unique_ptr<pat::CompositeCandidateCollection> ret_value(new pat::CompositeCandidateCollection());
@@ -98,10 +120,12 @@ void DiLeptonBuilder<Lepton1, Lepton2>::produce(edm::StreamID, edm::Event& evt, 
   for(size_t l1_idx = 0; l1_idx < leptons1->size(); ++l1_idx) {
     const Lepton1& l1 = leptons1->at(l1_idx);
     if(!l1_selection_(l1)) continue; 
+    if (dr_match(l1, *veto_leptons)) continue;
     
     for(size_t l2_idx = 0; l2_idx < leptons2->size(); ++l2_idx) {
       const Lepton2& l2 = leptons2->at(l2_idx);
       if(!l2_selection_(l2)) continue;
+      if (dr_match(l2, *veto_leptons)) continue;
 
       pat::CompositeCandidate lepton_pair;
       lepton_pair.setP4(getP4(l1) + getP4(l2));
