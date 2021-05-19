@@ -227,11 +227,16 @@ def nanoAOD_customizeDisplacedDiMuon(process, is_mc=False):
     process.muonTable.variables.timeInOutErr = Var("time().timeAtIpInOutErr", float, doc="time error in out")
     process.muonTable.variables.rpcTimeNdof = Var("rpcTime().nDof", float, doc="RPC time ndof")
     process.muonTable.variables.timeNdof = Var("time().nDof", float, doc="time ndof")
+    process.muonTable.variables.nValidHits = Var("numberOfValidHits", float, doc="n valid hits")
+    process.muonTable.variables.chi2ndof = Var("bestTrack.chi2/bestTrack.ndof", float, doc="chi2/ndof")
+    process.muonTable.variables.trkKink = Var("combinedQuality().trkKink", float, doc="trkKink")
+    process.muonTable.variables.isStandalone = Var("isStandAloneMuon",bool,doc="muon is a standalone muon")
 
     # Skim jet variables
     process.jetTable.externalVariables = cms.PSet()
-    jet_vars_rm = ['btagCMVA', 'btagDeepB', 'btagCSVV2', 'qgl',  'chHEF', 'neHEF', 'chEmEF', 'neEmEF', 'muEF',
-                   'chFPV0EF', 'chFPV1EF', 'chFPV2EF', 'chFPV3EF']
+    jet_vars_rm = ['btagDeepB', 'btagCSVV2', 'qgl',  'chHEF', 'neHEF', 'chEmEF', 'neEmEF', 'muEF',
+                   'chFPV0EF', 'chFPV1EF', 'chFPV2EF', 'chFPV3EF', 'hfcentralEtaStripSize', 'hfadjacentEtaStripsSize',
+                   'hfsigmaEtaEta', 'hfsigmaPhiPhi']
     for v in jet_vars_rm:
         delattr(process.jetTable.variables, v)
 
