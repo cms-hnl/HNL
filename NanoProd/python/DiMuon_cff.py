@@ -161,7 +161,7 @@ patSTATable = diDSAMuonTable.clone(
 
 
 countDiDSAMuon = cms.EDFilter("PATCandViewCountFilter",
-    minNumber = cms.uint32(1),
+    minNumber = cms.uint32(0),
     maxNumber = cms.uint32(999999),
     src = cms.InputTag("diDSAMuon")
 )
@@ -212,7 +212,7 @@ def nanoAOD_customizeDisplacedDiMuon(process, is_mc=False):
     # process.nanoAOD_step.insert(1000, process.displacedDiMuonSequence)
     process.muonSequence.insert(1000, process.displacedDiMuonSequence)
     nano_seq = process.nanoSequenceMC if is_mc else process.nanoSequence
-    process.nanoAOD_diDSAMuon_step = cms.Path(nano_seq + isomu24 + countDiDSAMuon)
+    process.nanoAOD_diDSAMuon_step = cms.Path(nano_seq + countDiDSAMuon)
     process.nanoAOD_patDSAMuon_step = cms.Path(nano_seq + isomu24 + countPatDSAMuon)
     process.nanoAOD_diMuon_step = cms.Path(nano_seq + isomu24 + countDiMuon)
     process.nanoAOD_diSTA_step = cms.Path(nano_seq + isomu24 + countDiSTA)
@@ -231,6 +231,10 @@ def nanoAOD_customizeDisplacedDiMuon(process, is_mc=False):
     process.muonTable.variables.chi2ndof = Var("bestTrack.chi2/bestTrack.ndof", float, doc="chi2/ndof")
     process.muonTable.variables.trkKink = Var("combinedQuality().trkKink", float, doc="trkKink")
     process.muonTable.variables.isStandalone = Var("isStandAloneMuon",bool,doc="muon is a standalone muon")
+
+    process.genParticleTable.variables.vx = Var("vx", float, precision=8)
+    process.genParticleTable.variables.vy = Var("vy", float, precision=8)
+    process.genParticleTable.variables.vz = Var("vz", float, precision=8)
 
     # Skim jet variables
     process.jetTable.externalVariables = cms.PSet()
