@@ -49,7 +49,7 @@ private:
 
 
 namespace {
-   
+
    pat::PFIsolation getMiniPFIsolation(const pat::PackedCandidateCollection& pfcands,
                                   float eta,
                                   float phi,
@@ -84,7 +84,7 @@ namespace {
        if (std::abs(id) == 22 && pt > ptthresh && dr2 > deadcone_ph * deadcone_ph)
          phiso += pt;
      }
- 
+
      return pat::PFIsolation(chiso, nhiso, phiso, puiso);
    }
 }
@@ -101,7 +101,7 @@ void TrackIsoTableProducer::produce(edm::StreamID, edm::Event& iEvent, const edm
   unsigned int ncand = muons->size();
 
   std::vector<float> ch_iso(ncand, 0.), nh_iso(ncand, 0.), ph_iso(ncand, 0.), pu_iso(ncand, 0.);
-  
+
   for (unsigned int i = 0; i < ncand; ++i) {
     const reco::Track& mu = (*muons)[i];
 
@@ -115,30 +115,10 @@ void TrackIsoTableProducer::produce(edm::StreamID, edm::Event& iEvent, const edm
 
   auto tab = std::make_unique<nanoaod::FlatTable>(ncand, name_, false, true);
 
-  tab->addColumn<float>(
-      "chIso",
-      ch_iso,
-      "charged isolation pT sum",
-      nanoaod::FlatTable::FloatColumn,
-      precision);
-  tab->addColumn<float>(
-      "nhIso",
-      nh_iso,
-      "neutral isolation pT sum",
-      nanoaod::FlatTable::FloatColumn,
-      precision);
-  tab->addColumn<float>(
-      "phIso",
-      ph_iso,
-      "photon isolation pT sum",
-      nanoaod::FlatTable::FloatColumn,
-      precision);
-  tab->addColumn<float>(
-      "puIso",
-      pu_iso,
-      "pileup isolation pT sum",
-      nanoaod::FlatTable::FloatColumn,
-      precision);  
+  tab->addColumn<float>("chIso", ch_iso, "charged isolation pT sum", precision);
+  tab->addColumn<float>("nhIso", nh_iso, "neutral isolation pT sum", precision);
+  tab->addColumn<float>("phIso", ph_iso, "photon isolation pT sum", precision);
+  tab->addColumn<float>("puIso", pu_iso, "pileup isolation pT sum", precision);
   iEvent.put(std::move(tab));
 }
 
