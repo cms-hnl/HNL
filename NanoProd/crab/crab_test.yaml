@@ -1,0 +1,10 @@
+config:
+  params:
+    era: Run2_2018
+    sampleType: data
+    storeFailed: false
+    maxEvents: 100
+    customiseCmds: "process.Timing = cms.Service('Timing', summaryOnly=cms.untracked.bool(True)); process.SimpleMemoryCheck = cms.Service('SimpleMemoryCheck', jobReportOutputOnly=cms.untracked.bool(True)); process.CPU = cms.Service('CPU')"
+  dryrun: true
+
+SingleMuon_2018D: /SingleMuon/Run2018D-UL2018_MiniAODv2_GT36-v1/MINIAOD
