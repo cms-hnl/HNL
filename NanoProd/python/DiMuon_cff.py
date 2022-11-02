@@ -189,6 +189,29 @@ for x_name in dir(this):
       _all_tables.append(x_name + 'Table')
 _all_modules = _all_filters + _all_producers + _all_tables
 
+def customiseGenParticles(process):
+  def pdgOR(pdgs):
+    abs_pdgs = [ f'abs(pdgId) == {pdg}' for pdg in pdgs ]
+    return '( ' + ' || '.join(abs_pdgs) + ' )'
+
+  leptons = pdgOR([ 11, 13, 15 ])
+  important_particles = pdgOR([ 6, 23, 24, 25, 35, 39, 9990012, 9900012 ])
+  process.finalGenParticles.select = [
+    'drop *',
+    'keep++ statusFlags().isLastCopy() && ' + leptons,
+    '+keep statusFlags().isFirstCopy() && ' + leptons,
+    'keep+ statusFlags().isLastCopy() && ' + important_particles,
+    '+keep statusFlags().isFirstCopy() && ' + important_particles,
+    "drop abs(pdgId) == 2212 && abs(pz) > 1000", #drop LHC protons accidentally added by previous keeps
+  ]
+
+  for coord in [ 'x', 'y', 'z' ]:
+    setattr(process.genParticleTable.variables, 'v' + coord,
+            Var(f'vertex().{coord}', float, precision=10,
+                doc=f'{coord} coordinate of the gen particle production vertex'))
+
+  return process
+
 def nanoAOD_customizeDisplacedDiMuon(process):
 
   process.MessageLogger.cerr.FwkReport.reportEvery = 100
@@ -220,9 +243,7 @@ def nanoAOD_customizeDisplacedDiMuon(process):
     "deltaEtaSuperClusterTrackAtVtx - superCluster.eta() + superCluster.seed().eta()", float, doc="", precision=10)
   process.electronTable.variables.dPhiIn = Var("deltaPhiSuperClusterTrackAtVtx", float, doc="", precision=10)
 
-  process.genParticleTable.variables.vx = Var("vx", float, precision=8)
-  process.genParticleTable.variables.vy = Var("vy", float, precision=8)
-  process.genParticleTable.variables.vz = Var("vz", float, precision=8)
+  process = customiseGenParticles(process)
 
   process.tauTask.remove(process.rerunMvaIsolationTaskForNano)
   del process.slimmedTausUpdated.tauIDSources.byDeepTau2018v2p5VSeraw
