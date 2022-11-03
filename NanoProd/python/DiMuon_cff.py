@@ -54,15 +54,6 @@ diMuon = cms.EDProducer(
   l1l2Interchangeable = cms.bool(True)
 )
 
-staDSAMuon = cms.EDProducer(
-  'MuTrackBuilder',
-  src1 = cms.InputTag('finalMuons'),
-  src2 = cms.InputTag('selectedDSAMuons'),
-  srcVeto = cms.InputTag('vetoMuons'),
-  lep1Selection = diSTA.lepSelection,
-  postVtxSelection = diDSAMuon.postVtxSelection
-)
-
 patDSAMuon = cms.EDProducer(
   'MuTrackBuilder',
   src1 = cms.InputTag('finalMuons'),
