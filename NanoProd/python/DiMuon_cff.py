@@ -15,8 +15,8 @@ selectedDSAMuons = cms.EDFilter(
 vetoMuons = cms.EDFilter(
   'PATMuonRefSelector',
   src = cms.InputTag('slimmedMuons'),
-  #cut = cms.string('pt < 0 && abs(eta) < 2.4 && isMediumMuon && dB<0.02')
-  cut = cms.string('isMediumMuon && dB < 0.08')
+  cut = cms.string('pt > 24 && abs(eta) < 2.4 && isMediumMuon && dB < 0.02')
+  # cut = cms.string('isMediumMuon && dB < 0.08')
 )
 
 diDSAMuon = cms.EDProducer(
