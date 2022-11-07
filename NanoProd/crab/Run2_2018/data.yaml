@@ -1,7 +1,8 @@
 config:
-  era: Run2_2018
-  sampleType: data
-  storeFailed: false
+    params:
+      era: Run2_2018
+      sampleType: data
+      storeFailed: false
 
 EGamma_2018A: /EGamma/Run2018A-UL2018_MiniAODv2_GT36-v1/MINIAOD
 EGamma_2018B: /EGamma/Run2018B-UL2018_MiniAODv2-v1/MINIAOD
