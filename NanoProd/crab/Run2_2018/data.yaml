@@ -1,0 +1,14 @@
+config:
+    params:
+      era: Run2_2018
+      sampleType: data
+      storeFailed: false
+
+EGamma_2018A: /EGamma/Run2018A-UL2018_MiniAODv2_GT36-v1/MINIAOD
+EGamma_2018B: /EGamma/Run2018B-UL2018_MiniAODv2-v1/MINIAOD
+EGamma_2018C: /EGamma/Run2018C-UL2018_MiniAODv2_GT36-v1/MINIAOD
+EGamma_2018D: /EGamma/Run2018D-UL2018_MiniAODv2-v2/MINIAOD
+SingleMuon_2018A: /SingleMuon/Run2018A-UL2018_MiniAODv2_GT36-v1/MINIAOD
+SingleMuon_2018B: /SingleMuon/Run2018B-UL2018_MiniAODv2_GT36-v1/MINIAOD
+SingleMuon_2018C: /SingleMuon/Run2018C-UL2018_MiniAODv2_GT36-v2/MINIAOD
+SingleMuon_2018D: /SingleMuon/Run2018D-UL2018_MiniAODv2_GT36-v1/MINIAOD

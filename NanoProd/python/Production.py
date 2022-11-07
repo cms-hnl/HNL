@@ -1,5 +1,6 @@
 # Produce NanoAOD customized for HNL studies.
 
+from __future__ import print_function
 import FWCore.ParameterSet.Config as cms
 from FWCore.ParameterSet.VarParsing import VarParsing
 
@@ -103,7 +104,7 @@ elif options.mode == "tau":
 else:
     raise RuntimeError('Mode "{}" not supported.'.format(options.mode))
 
-    
+
 if isData:
     from PhysicsTools.NanoAOD.nano_cff import nanoAOD_customizeData
     process = nanoAOD_customizeData(process)
@@ -171,4 +172,4 @@ x = x if x >= 0 else 10000
 process.MessageLogger.cerr.FwkReport.reportEvery = max(1, min(1000, x // 10))
 
 if options.dumpPython:
-    print process.dumpPython()
+    print(process.dumpPython())
