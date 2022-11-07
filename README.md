@@ -50,6 +50,7 @@ git clone --recursive git@github.com:cms-hnl/HNLProd.git
 ### Loading environment
 Following command activates the framework environment:
 ```sh
+cd HNLProd
 source $PWD/env.sh nano_prod
 ```
 ## How to run miniAOD->nanoAOD skims production
