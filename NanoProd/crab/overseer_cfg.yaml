@@ -4,13 +4,14 @@ params:
   skimCfg: skim_mu.yaml
   maxEvents: -1
 splitting: FileBased
-unitsPerJob: 4
-scriptExe: RunKit/nanoProdCrabJob.sh
+unitsPerJob: 8
+scriptExe: RunKit/crabJob.sh
 outputFiles:
   - nano.root
 filesToTransfer:
-  - RunKit/nanoProdCrabJob.sh
-  - RunKit/nanoProdCrabJob.py
+  - RunKit/crabJob.sh
+  - RunKit/crabJob.py
+  - RunKit/crabJob_nanoProd.py
   - RunKit/skim_tree.py
   - RunKit/sh_tools.py
   - HNL/NanoProd/config/skim_mu.yaml
@@ -30,8 +31,9 @@ maxResubmitCount: 2
 maxRecoveryCount: 2
 updateInterval: 60 # minutes
 postProcessing:
-  lawTask: CrabNanoProdTaskPostProcess
+  lawTask: ProdTask
   workflow: htcondor
+  #workflow: local
   bootstrap: bootstrap.sh
 postProcessingDoneFlag: post_processing_done.txt
 #  requirements: ( (OpSysAndVer =?= "CentOS7") || (OpSysAndVer =?= "CentOS8") )
