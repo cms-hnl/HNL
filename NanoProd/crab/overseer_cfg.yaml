@@ -33,7 +33,6 @@ updateInterval: 60 # minutes
 postProcessing:
   lawTask: ProdTask
   workflow: htcondor
-  #workflow: local
   bootstrap: bootstrap.sh
 postProcessingDoneFlag: post_processing_done.txt
 #  requirements: ( (OpSysAndVer =?= "CentOS7") || (OpSysAndVer =?= "CentOS8") )
