@@ -27,14 +27,12 @@ numCores: 1
 inputDBS: global
 allowNonValid: False
 dryrun: False
-maxResubmitCount: 2
-maxRecoveryCount: 2
+maxRecoveryCount: 3
 updateInterval: 60 # minutes
 postProcessing:
   lawTask: ProdTask
   workflow: htcondor
   bootstrap: bootstrap.sh
-postProcessingDoneFlag: post_processing_done.txt
 #  requirements: ( (OpSysAndVer =?= "CentOS7") || (OpSysAndVer =?= "CentOS8") )
 targetOutputFileSize: 2048 # MiB
 renewKerberosTicket: True
