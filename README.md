@@ -59,7 +59,6 @@ Production should be run on the server that have the crab stageout area mounted 
 1. Load environment on CentOS8 machine
    ```sh
    source $PWD/env.sh nano_prod
-   source /cvmfs/cms.cern.ch/common/crab-setup.sh
    voms-proxy-init -voms cms -rfc -valid 192:00
    ```
 
@@ -72,14 +71,24 @@ Production should be run on the server that have the crab stageout area mounted 
 
 1. Test that the code works locally (take one of the miniAOD files as an input). E.g.
    ```sh
-   python3 RunKit/nanoProdWrapper.py customise=HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon maxEvents=2000 sampleType=data storeFailed=True era=Run2_2018 inputFiles=file:/eos/cms/store/group/phys_tau/kandroso/miniAOD_UL18/SingleMuon.root skimCfg=HNL/NanoProd/config/skim_mu.yaml
-   ./RunKit/nanoProdCrabJob.sh
+   mkdir -p tmp && cd tmp
+   cmsEnv python3 $ANALYSIS_PATH/RunKit/nanoProdWrapper.py customise=HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon maxEvents=2000 sampleType=data storeFailed=True era=Run2_2018 inputFiles=file:/eos/cms/store/group/phys_tau/kandroso/miniAOD_UL18/SingleMuon.root skimCfg=$ANALYSIS_PATH/HNL/NanoProd/config/skim_mu.yaml writePSet=True skimSetup=skim skimSetupFailed=skim_failed createTar=False
+   cmsEnv $ANALYSIS_PATH/RunKit/crabJob.sh
    ```
-   - check that output file `nano.root` is created correctly
+   Check that output file `nano_0.root` is created correctly. After that, you can remove `tmp` directory:
+   ```sh
+   cd $ANALYSIS_PATH
+   rm -r tmp
+   ```
+1. Test that post-processing task is known to law:
+   ```sh
+   law index
+   law run ProdTask --help
+   ```
 
 1. Test a dryrun crab submission
    ```sh
-   python3 RunKit/crabOverseer.py --work-area crab_test --cfg HNL/NanoProd/crab/overseer_cfg.yaml --no-loop HNL/NanoProd/crab/crab_test.yaml
+   python RunKit/crabOverseer.py --work-area crab_test --cfg HNL/NanoProd/crab/overseer_cfg.yaml --no-loop HNL/NanoProd/crab/crab_test.yaml
    ```
    - NB. Crab estimates of processing time will not be accurate, ignore them.
    - After the test, remove `crab_test` directory:
@@ -87,20 +96,14 @@ Production should be run on the server that have the crab stageout area mounted 
      rm -r crab_test
      ```
 
-1. Test that post-processing task is known to law:
-   ```sh
-   law index
-   law run CrabNanoProdTaskPostProcess --help
-   ```
-
 1. Submit tasks using `RunKit/crabOverseer.py` and monitor the process.
    It is recommended to run `crabOverseer` in screen.
    ```sh
-   python3 RunKit/crabOverseer.py --cfg HNL/NanoProd/crab/overseer_cfg.yaml HNL/NanoProd/crab/Run2_2018/FILE1.yaml HNL/NanoProd/crab/Run2_2018/FILE2.yaml ...
+   python RunKit/crabOverseer.py --cfg HNL/NanoProd/crab/overseer_cfg.yaml HNL/NanoProd/crab/Run2_2018/FILE1.yaml HNL/NanoProd/crab/Run2_2018/FILE2.yaml ...
    ```
    - Use `HNL/NanoProd/crab/Run2_2018/*.yaml` to submit all the tasks
-   - For more information about available command line arguments run `python3 RunKit/crabOverseer.py --help`
+   - For more information about available command line arguments run `python RunKit/crabOverseer.py --help`
    - For consecutive runs, if there are no modifications in the configs, it is enough to run `crabOverseer` without any arguments:
      ```sh
-     python3 RunKit/crabOverseer.py
+     python RunKit/crabOverseer.py
      ```

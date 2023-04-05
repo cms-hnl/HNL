@@ -1,60 +1,71 @@
-column_filters:
-  - drop ^.*_cleanmask$
-  - drop Jet_qgl
-  - drop Jet_neEmEF
-  - drop Jet_neHEF
-  - drop Jet_chFPV0EF
-  - drop Jet_chHEF
-  - drop Jet_hfsigmaEtaEta
-  - drop Jet_hfsigmaPhiPhi
-  - drop Jet_chEmEF
-  - drop Jet_muEF
-  - drop Jet_hfcentralEtaStripSize
-  - drop Jet_hfadjacentEtaStripsSize
-  - drop Jet_nMuons
-  - drop Jet_muonIdx1
-  - drop Jet_muonIdx2
-  - drop Jet_nElectrons
-  - drop Jet_electronIdx1
-  - drop Jet_electronIdx2
-  - drop Jet_cRegRes
-  - drop Jet_cRegCorr
-  - drop Jet_bRegRes
-  - drop Jet_bRegCorr
-  - drop Jet_btagDeepB
-  - drop Jet_btagDeepCvB
-  - drop Jet_btagDeepCvL
-  - drop Jet_btagCSVV2
-  - drop Jet_btagDeepFlavCvB
-  - drop Jet_btagDeepFlavCvL
-  - drop Jet_btagDeepFlavQG
-  - drop Jet_muonSubtrFactor
-  - drop ^(n|)Tau(_.*|)$
-  - drop ^(n|)boostedTau(_.*|)$
-  - drop ^(n|)Photon(_.*|)$
-  - drop ^(n|)LowPtElectron(_.*|)$
-  - drop ^(n|)SoftActivityJet(.*|)$
-  - drop ^HTXS_.*$
-  - drop ^(n|)FsrPhoton(_.*|)$
-  - drop ^(n|)GenDressedLepton(_.*|)$
-  - drop ^(n|)GenIsolatedPhoton(_.*|)$
-  - drop ^(n|)SubJet(_.*|)$
-  - drop ^(n|)FatJet(_.*|)$
-  - drop ^(n|)GenJetAK8(_.*|)$
-  - drop ^(n|)SubGenJetAK8(_.*|)$
-  - drop ^(n|)GenProton(_.*|)$
-  - drop ^(n|)Proton(_.*|)$
-  - drop ^(n|)PPSLocalTrack(_.*|)$
-  - drop ^L1_.*$
-  - drop ^HLT_.*$
-  - keep ^HLT_(|Iso(|Tk))Mu.*$
-  - keep ^HLT_Ele.*$
+skim:
+  input_tree: Events
+  other_trees:
+    - LuminosityBlocks
+    - Runs
+  sel_ref: selection
+  column_filters:
+    - drop ^.*_cleanmask$
+    - drop Jet_qgl
+    - drop Jet_neEmEF
+    - drop Jet_neHEF
+    - drop Jet_chFPV0EF
+    - drop Jet_chHEF
+    - drop Jet_hfsigmaEtaEta
+    - drop Jet_hfsigmaPhiPhi
+    - drop Jet_chEmEF
+    - drop Jet_muEF
+    - drop Jet_hfcentralEtaStripSize
+    - drop Jet_hfadjacentEtaStripsSize
+    - drop Jet_nMuons
+    - drop Jet_muonIdx1
+    - drop Jet_muonIdx2
+    - drop Jet_nElectrons
+    - drop Jet_electronIdx1
+    - drop Jet_electronIdx2
+    - drop Jet_cRegRes
+    - drop Jet_cRegCorr
+    - drop Jet_bRegRes
+    - drop Jet_bRegCorr
+    - drop Jet_btagDeepB
+    - drop Jet_btagDeepCvB
+    - drop Jet_btagDeepCvL
+    - drop Jet_btagCSVV2
+    - drop Jet_btagDeepFlavCvB
+    - drop Jet_btagDeepFlavCvL
+    - drop Jet_btagDeepFlavQG
+    - drop Jet_muonSubtrFactor
+    - drop ^(n|)Tau(_.*|)$
+    - drop ^(n|)boostedTau(_.*|)$
+    - drop ^(n|)Photon(_.*|)$
+    - drop ^(n|)LowPtElectron(_.*|)$
+    - drop ^(n|)SoftActivityJet(.*|)$
+    - drop ^HTXS_.*$
+    - drop ^(n|)FsrPhoton(_.*|)$
+    - drop ^(n|)GenDressedLepton(_.*|)$
+    - drop ^(n|)GenIsolatedPhoton(_.*|)$
+    - drop ^(n|)SubJet(_.*|)$
+    - drop ^(n|)FatJet(_.*|)$
+    - drop ^(n|)GenJetAK8(_.*|)$
+    - drop ^(n|)SubGenJetAK8(_.*|)$
+    - drop ^(n|)GenProton(_.*|)$
+    - drop ^(n|)Proton(_.*|)$
+    - drop ^(n|)PPSLocalTrack(_.*|)$
+    - drop ^L1_.*$
+    - drop ^HLT_.*$
+    - keep ^HLT_(|Iso(|Tk))Mu.*$
+    - keep ^HLT_Ele.*$
 
-column_filters_for_failed:
-  - drop ^.*$
-  - keep ^LHE_.*$
-  - keep genWeight
-  - keep ^Pileup_(nPU|nTrueInt)$
+skim_failed:
+  input_tree: Events
+  output_tree: EventsNotSelected
+  sel_ref: selection
+  invert_sel: true
+  column_filters:
+    - drop ^.*$
+    - keep ^LHE_.*$
+    - keep genWeight
+    - keep ^Pileup_(nPU|nTrueInt)$
 
 selection: "
   bool has_pair = nDiDSAMuon > 0 || nDiSTA > 0 || nDiMuon > 0 || nPatDSAMuon > 0 || nPatSTA > 0

@@ -2,6 +2,8 @@ cmsswPython: RunKit/nanoProdWrapper.py
 params:
   customise: HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon
   skimCfg: skim_mu.yaml
+  skimSetup: skim
+  skimSetupFailed: skim_failed
   maxEvents: -1
 splitting: FileBased
 unitsPerJob: 8
@@ -29,7 +31,7 @@ allowNonValid: False
 dryrun: False
 maxRecoveryCount: 3
 updateInterval: 60 # minutes
-postProcessing:
+localProcessing:
   lawTask: ProdTask
   workflow: htcondor
   bootstrap: bootstrap.sh
