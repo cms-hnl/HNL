@@ -20,9 +20,9 @@ filesToTransfer:
 
 # Update destination site and paths before launching a production
 site: T3_CH_CERNBOX
-crabOutput: /store/user/kandroso/hnl-mu-prod
-localCrabOutput: /eos/home-k/kandroso/hnl-mu-prod
-finalOutput: /eos/home-k/kandroso/cms-hnl/Run2/NANOAOD/mu/Run2_2018
+crabOutput: /store/user/amascell/crab_2022_hnl
+localCrabOutput: /eos/user/a/amascell/crab_2022_hnl
+finalOutput: /eos/user/a/amascell/cms-hnl/Run3_2022
 
 maxMemory: 2500
 numCores: 1
