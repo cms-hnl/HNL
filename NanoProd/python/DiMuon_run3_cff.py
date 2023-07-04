@@ -105,7 +105,7 @@ dsaTable = cms.EDProducer(
     P3Vars,
     charge = Var("charge", int, doc="electric charge"),
     n_valid_hits = Var('numberOfValidHits', int, doc='valid hits'),
-    # n_lost_hits = Var('numberOfLostHits', int, doc='lost hits'),
+    n_lost_hits = Var('bestTrack().numberOfLostHits()', int, doc='lost hits'),
     n_muon_stations = Var('bestTrack().hitPattern().muonStationsWithValidHits', int, doc='muon stations with valid hits'),
     n_dt_stations = Var('bestTrack().hitPattern().dtStationsWithValidHits', int, doc='DT stations with valid hits'),
     n_dt_hits = Var('bestTrack().hitPattern().numberOfValidMuonDTHits', int, doc='valid DT hits'),
@@ -120,13 +120,24 @@ dsaTable = cms.EDProducer(
     pt_error = Var('bestTrack().ptError()', float, precision=10, doc='pt error'),
     theta_error = Var('bestTrack().thetaError()', float, precision=8, doc='theta error'),
     phi_error = Var('bestTrack().phiError()', float, precision=8, doc='phi error'),
+    pfIsolationR03_sumChargedHadronPt = Var('pfIsolationR03().sumChargedHadronPt()', float, doc='PF isolation dR=0.3, charged hadron component'),
+    pfIsolationR03_sumChargedParticlePt = Var('pfIsolationR03().sumChargedParticlePt()', float, doc='PF isolation dR=0.3, charged particle component'),
+    pfIsolationR03_sumNeutralHadronEt = Var('pfIsolationR03().sumNeutralHadronEt()', float, doc='PF isolation dR=0.3, neutral hadron component'),
+    pfIsolationR03_sumPhotonEt = Var('pfIsolationR03().sumPhotonEt()', float, doc='PF isolation dR=0.3, photon component'),
+    pfIsolationR03_sumPUPt = Var('pfIsolationR03().sumPUPt()', float, doc='PF isolation dR=0.3, charged PU component'),
+    pfIsolationR04_sumChargedHadronPt = Var('pfIsolationR04().sumChargedHadronPt()', float, doc='PF isolation dR=0.4, charged hadron component'),
+    pfIsolationR04_sumChargedParticlePt = Var('pfIsolationR04().sumChargedParticlePt()', float, doc='PF isolation dR=0.4, charged particle component'),
+    pfIsolationR04_sumNeutralHadronEt = Var('pfIsolationR04().sumNeutralHadronEt()', float, doc='PF isolation dR=0.4, neutral hadron component'),
+    pfIsolationR04_sumPhotonEt = Var('pfIsolationR04().sumPhotonEt()', float, doc='PF isolation dR=0.4, photon component'),
+    pfIsolationR04_sumPUPt = Var('pfIsolationR04().sumPUPt()', float, doc='PF isolation dR=0.4, charged PU component'),
+    rpcTimeInOut = Var("rpcTime().timeAtIpInOut", float, doc="RPC time in out"),
+    timeInOut = Var("time().timeAtIpInOut", float, doc="time in out"),
+    rpcTimeInOutErr = Var("rpcTime().timeAtIpInOutErr", float, doc="RPC time error in out"),
+    timeInOutErr = Var("time().timeAtIpInOutErr", float, doc="time error in out"),
+    rpcTimeNdof = Var("rpcTime().nDof", float, doc="RPC time ndof"),
+    timeNdof = Var("time().nDof", float, doc="time ndof"),
   )
 )
-
-# dsaIsoTable = cms.EDProducer(
-#   'TrackIsoTableProducer',
-#   name = cms.string("DSAMuon")
-# )
 
 diDSAMuonTable = cms.EDProducer(
   'SimpleCompositeCandidateFlatTableProducer',
