@@ -7,14 +7,8 @@ skim:
   column_filters:
     - drop ^.*_cleanmask$
     - drop Jet_qgl
-    - drop Jet_neEmEF
-    - drop Jet_neHEF
-    - drop Jet_chFPV0EF
-    - drop Jet_chHEF
     - drop Jet_hfsigmaEtaEta
     - drop Jet_hfsigmaPhiPhi
-    - drop Jet_chEmEF
-    - drop Jet_muEF
     - drop Jet_hfcentralEtaStripSize
     - drop Jet_hfadjacentEtaStripsSize
     - drop Jet_nMuons
@@ -31,9 +25,6 @@ skim:
     - drop Jet_btagDeepCvB
     - drop Jet_btagDeepCvL
     - drop Jet_btagCSVV2
-    - drop Jet_btagDeepFlavCvB
-    - drop Jet_btagDeepFlavCvL
-    - drop Jet_btagDeepFlavQG
     - drop Jet_muonSubtrFactor
     - drop ^(n|)Tau(_.*|)$
     - drop ^(n|)boostedTau(_.*|)$
