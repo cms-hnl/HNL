@@ -4,19 +4,23 @@ from PhysicsTools.NanoAOD.common_cff import CandVars, Var, P3Vars
 from HNL.NanoProd.common_cff import ufloat, uint, ubool
 
 
-def defineSelectedDSAFilter(isDSATracks):
+def defineSelectedDSAFilter(isDSATracks, isRun2):
+  # Use a placeholder for displaced pat::Muons in Run 2 
+  slimmed_muons_src = cms.InputTag('slimmedMuons') if isRun2 else cms.InputTag('slimmedDisplacedMuons')
+  slimmed_muons_cut = cms.string('''pt < 0''') if isRun2 else \
+                      cms.string('''pt > 3. && abs(eta) < 2.4
+                              && numberOfValidHits > 15
+                              && bestTrack.ptError/pt < 1.
+                              && bestTrack.chi2/bestTrack.ndof < 2.5''') 
   return cms.EDFilter(
           'TrackSelector' if isDSATracks else 'PATMuonRefSelector',
           src = cms.InputTag('displacedStandAloneMuons') if isDSATracks else
-                cms.InputTag('slimmedDisplacedMuons'),
+                slimmed_muons_src,
           cut = cms.string('''pt > 3. && abs(eta) < 2.4
                               && numberOfValidHits > 15
                               && ptError/pt < 1.
                               && chi2/ndof < 2.5''') if isDSATracks else
-                cms.string('''pt > 3. && abs(eta) < 2.4
-                              && numberOfValidHits > 15
-                              && bestTrack.ptError/pt < 1.
-                              && bestTrack.chi2/bestTrack.ndof < 2.5''')
+                slimmed_muons_cut
         )
 
 def defineDiDSAMuonProducer(isDSATracks):
@@ -85,10 +89,10 @@ def defineDSATableProducer(isDSATracks):
         )
 
 def defineFiltersAndProducers(isRun2):
-  
+
   this = sys.modules[__name__]
 
-  this.selectedDSAMuons = defineSelectedDSAFilter(isDSATracks=True)
+  this.selectedDSAMuons = defineSelectedDSAFilter(isDSATracks=True, isRun2=isRun2)
 
   this.vetoMuons = cms.EDFilter(
     'PATMuonRefSelector',
@@ -189,33 +193,31 @@ def defineFiltersAndProducers(isRun2):
     )
   )
 
-  if not isRun2:
+  # Save DSA pat:Muons 
+  this.selectedDSAMuonsPat = defineSelectedDSAFilter(isDSATracks=False, isRun2=isRun2)
+  this.diDSAMuonPat = defineDiDSAMuonProducer(isDSATracks=False)
+  this.patDSAMuonPat = defnePatDSAMuonProducer(isDSATracks=False)
+  this.eleDSAMuonPat = defineEleDSAMuonProducer(isDSATracks=False)
+  this.dsaPatTable = defineDSATableProducer(isDSATracks=False)
 
-    # In Run 3 save also DSA muons from pat::Muon collection
-    this.selectedDSAMuonsPat = defineSelectedDSAFilter(isDSATracks=False)
-    this.diDSAMuonPat = defineDiDSAMuonProducer(isDSATracks=False)
-    this.patDSAMuonPat = defnePatDSAMuonProducer(isDSATracks=False)
-    this.eleDSAMuonPat = defineEleDSAMuonProducer(isDSATracks=False)
-    this.dsaPatTable = defineDSATableProducer(isDSATracks=False)
-
-    this.dsaPatTable.variables.dxy = Var('dB("PV2D")', float, precision=10, doc='dxy (with sign) wrt first PV, in cm')
-    this.dsaPatTable.variables.dz = Var('dB("PVDZ")', float, precision=10, doc='dz (with sign) wrt first PV, in cm')
-    this.dsaPatTable.variables.pfIsolationR03_sumChargedHadronPt = Var('pfIsolationR03().sumChargedHadronPt()', float, doc='PF isolation dR=0.3, charged hadron component')
-    this.dsaPatTable.variables.pfIsolationR03_sumChargedParticlePt = Var('pfIsolationR03().sumChargedParticlePt()', float, doc='PF isolation dR=0.3, charged particle component')
-    this.dsaPatTable.variables.pfIsolationR03_sumNeutralHadronEt = Var('pfIsolationR03().sumNeutralHadronEt()', float, doc='PF isolation dR=0.3, neutral hadron component')
-    this.dsaPatTable.variables.pfIsolationR03_sumPhotonEt = Var('pfIsolationR03().sumPhotonEt()', float, doc='PF isolation dR=0.3, photon component')
-    this.dsaPatTable.variables.pfIsolationR03_sumPUPt = Var('pfIsolationR03().sumPUPt()', float, doc='PF isolation dR=0.3, charged PU component')
-    this.dsaPatTable.variables.pfIsolationR04_sumChargedHadronPt = Var('pfIsolationR04().sumChargedHadronPt()', float, doc='PF isolation dR=0.4, charged hadron component')
-    this.dsaPatTable.variables.pfIsolationR04_sumChargedParticlePt = Var('pfIsolationR04().sumChargedParticlePt()', float, doc='PF isolation dR=0.4, charged particle component')
-    this.dsaPatTable.variables.pfIsolationR04_sumNeutralHadronEt = Var('pfIsolationR04().sumNeutralHadronEt()', float, doc='PF isolation dR=0.4, neutral hadron component')
-    this.dsaPatTable.variables.pfIsolationR04_sumPhotonEt = Var('pfIsolationR04().sumPhotonEt()', float, doc='PF isolation dR=0.4, photon component')
-    this.dsaPatTable.variables.pfIsolationR04_sumPUPt = Var('pfIsolationR04().sumPUPt()', float, doc='PF isolation dR=0.4, charged PU component')
-    this.dsaPatTable.variables.rpcTimeInOut = Var('rpcTime().timeAtIpInOut', float, doc='RPC time in out')
-    this.dsaPatTable.variables.timeInOut = Var('time().timeAtIpInOut', float, doc='time in out')
-    this.dsaPatTable.variables.rpcTimeInOutErr = Var('rpcTime().timeAtIpInOutErr', float, doc='RPC time error in out')
-    this.dsaPatTable.variables.timeInOutErr = Var('time().timeAtIpInOutErr', float, doc='time error in out')
-    this.dsaPatTable.variables.rpcTimeNdof = Var('rpcTime().nDof', float, doc='RPC time ndof')
-    this.dsaPatTable.variables.timeNdof = Var('time().nDof', float, doc='time ndof')
+  this.dsaPatTable.variables.dxy = Var('dB("PV2D")', float, precision=10, doc='dxy (with sign) wrt first PV, in cm')
+  this.dsaPatTable.variables.dz = Var('dB("PVDZ")', float, precision=10, doc='dz (with sign) wrt first PV, in cm')
+  this.dsaPatTable.variables.pfIsolationR03_sumChargedHadronPt = Var('pfIsolationR03().sumChargedHadronPt()', float, doc='PF isolation dR=0.3, charged hadron component')
+  this.dsaPatTable.variables.pfIsolationR03_sumChargedParticlePt = Var('pfIsolationR03().sumChargedParticlePt()', float, doc='PF isolation dR=0.3, charged particle component')
+  this.dsaPatTable.variables.pfIsolationR03_sumNeutralHadronEt = Var('pfIsolationR03().sumNeutralHadronEt()', float, doc='PF isolation dR=0.3, neutral hadron component')
+  this.dsaPatTable.variables.pfIsolationR03_sumPhotonEt = Var('pfIsolationR03().sumPhotonEt()', float, doc='PF isolation dR=0.3, photon component')
+  this.dsaPatTable.variables.pfIsolationR03_sumPUPt = Var('pfIsolationR03().sumPUPt()', float, doc='PF isolation dR=0.3, charged PU component')
+  this.dsaPatTable.variables.pfIsolationR04_sumChargedHadronPt = Var('pfIsolationR04().sumChargedHadronPt()', float, doc='PF isolation dR=0.4, charged hadron component')
+  this.dsaPatTable.variables.pfIsolationR04_sumChargedParticlePt = Var('pfIsolationR04().sumChargedParticlePt()', float, doc='PF isolation dR=0.4, charged particle component')
+  this.dsaPatTable.variables.pfIsolationR04_sumNeutralHadronEt = Var('pfIsolationR04().sumNeutralHadronEt()', float, doc='PF isolation dR=0.4, neutral hadron component')
+  this.dsaPatTable.variables.pfIsolationR04_sumPhotonEt = Var('pfIsolationR04().sumPhotonEt()', float, doc='PF isolation dR=0.4, photon component')
+  this.dsaPatTable.variables.pfIsolationR04_sumPUPt = Var('pfIsolationR04().sumPUPt()', float, doc='PF isolation dR=0.4, charged PU component')
+  this.dsaPatTable.variables.rpcTimeInOut = Var('rpcTime().timeAtIpInOut', float, doc='RPC time in out')
+  this.dsaPatTable.variables.timeInOut = Var('time().timeAtIpInOut', float, doc='time in out')
+  this.dsaPatTable.variables.rpcTimeInOutErr = Var('rpcTime().timeAtIpInOutErr', float, doc='RPC time error in out')
+  this.dsaPatTable.variables.timeInOutErr = Var('time().timeAtIpInOutErr', float, doc='time error in out')
+  this.dsaPatTable.variables.rpcTimeNdof = Var('rpcTime().nDof', float, doc='RPC time ndof')
+  this.dsaPatTable.variables.timeNdof = Var('time().nDof', float, doc='time ndof')
 
 
 def customiseGenParticles(process):
@@ -265,7 +267,6 @@ def nanoAOD_customizeDisplacedDiMuon(process, isRun2):
           ))
         _all_tables.append(x_name + 'Table')
   _all_modules = _all_filters + _all_producers + _all_tables
-  print(_all_modules)
 
   process.MessageLogger.cerr.FwkReport.reportEvery = 100
 
