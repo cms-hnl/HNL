@@ -110,6 +110,6 @@ Production should be run on the server that have the crab stageout area mounted 
 ## Example of miniAOD->nanoAOD skims production for Run 3
 ```sh
 mkdir -p tmp && cd tmp
-cmsEnv python3 $ANALYSIS_PATH/RunKit/nanoProdWrapper.py maxEvents=2000 sampleType=mc era=Run3_2022 inputFiles=file:/eos/home-k/kandroso/cms-hnl/Run3/Run3Summer22/HeavyNeutrino_trilepton_M-4_V-0.00151_mu_massiveAndCKM_LO/miniAOD_1.root writePSet=True createTar=False customise=HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon_Run3 skimCfg=$ANALYSIS_PATH/HNL/NanoProd/config/skim_mu.yaml skimSetup=skim skimSetupFailed=skim_failed
+cmsEnv python3 $ANALYSIS_PATH/RunKit/nanoProdWrapper.py maxEvents=2000 sampleType=mc era=Run3_2022 inputFiles=file:/eos/home-k/kandroso/cms-hnl/Run3/Run3Summer22/HeavyNeutrino_trilepton_M-4_V-0.00151_mu_massiveAndCKM_LO/miniAOD_1.root writePSet=True createTar=False customise=HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon_Run3 skimCfg=$ANALYSIS_PATH/HNL/NanoProd/config/skim_mu_run3.yaml skimSetup=skim skimSetupFailed=skim_failed
 cmsEnv $ANALYSIS_PATH/RunKit/crabJob.sh
 ```

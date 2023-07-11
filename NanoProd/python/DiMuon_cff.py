@@ -4,22 +4,91 @@ from PhysicsTools.NanoAOD.common_cff import CandVars, Var, P3Vars
 from HNL.NanoProd.common_cff import ufloat, uint, ubool
 
 
+def defineSelectedDSAFilter(isDSATracks):
+  return cms.EDFilter(
+          'TrackSelector' if isDSATracks else 'PATMuonRefSelector',
+          src = cms.InputTag('displacedStandAloneMuons') if isDSATracks else
+                cms.InputTag('slimmedDisplacedMuons'),
+          cut = cms.string('''pt > 3. && abs(eta) < 2.4
+                              && numberOfValidHits > 15
+                              && ptError/pt < 1.
+                              && chi2/ndof < 2.5''') if isDSATracks else
+                cms.string('''pt > 3. && abs(eta) < 2.4
+                              && numberOfValidHits > 15
+                              && bestTrack.ptError/pt < 1.
+                              && bestTrack.chi2/bestTrack.ndof < 2.5''')
+        )
+
+def defineDiDSAMuonProducer(isDSATracks):
+  return cms.EDProducer(
+          'DiTrackBuilder' if isDSATracks else 'DiMuonBuilder',
+          src = cms.InputTag('selectedDSAMuons') if isDSATracks else 
+                cms.InputTag('selectedDSAMuonsPat'),
+          srcVeto = cms.InputTag('vetoMuons'),
+          postVtxSelection = cms.string('userFloat("sv_ndof") > 0'),
+          l1l2Interchangeable = cms.bool(True)
+        )
+
+def defnePatDSAMuonProducer(isDSATracks):
+  return cms.EDProducer(
+          'MuTrackBuilder' if isDSATracks else 'DiMuonBuilder',
+          src1 = cms.InputTag('finalMuons'),
+          src2 = cms.InputTag('selectedDSAMuons') if isDSATracks else 
+                 cms.InputTag('selectedDSAMuonsPat'),
+          srcVeto = cms.InputTag('vetoMuons'),
+          lep1Selection = diMuon.lepSelection,
+          postVtxSelection = diDSAMuon.postVtxSelection
+        )
+
+def defineEleDSAMuonProducer(isDSATracks):
+  return cms.EDProducer(
+          'EleTrackBuilder' if isDSATracks else 'EleMuBuilder',
+          src1 = cms.InputTag('finalElectrons'),
+          src2 = cms.InputTag('selectedDSAMuons') if isDSATracks else 
+                 cms.InputTag('selectedDSAMuonsPat'),
+          src2Veto = cms.InputTag('vetoMuons'),
+          lep1Selection = cms.string('pt > 5. && abs(eta) < 2.5 && abs(dB("PV2D")) > 0.01'),
+          postVtxSelection = diDSAMuon.postVtxSelection
+        )
+
+def defineDSATableProducer(isDSATracks):
+  prefix = '' if isDSATracks else 'bestTrack().'
+  return cms.EDProducer(
+          'SimpleTrackFlatTableProducer' if isDSATracks else 'SimpleCandidateFlatTableProducer',
+          src = cms.InputTag('selectedDSAMuons') if isDSATracks else 
+                cms.InputTag('selectedDSAMuonsPat'),
+          cut = cms.string('1'), # if we place a cut here, the indexing will be wrong
+          name = cms.string('DSAMuon') if isDSATracks else cms.string('DSAMuonPat'),
+          doc = cms.string('Displaced standalone muon variables'),
+          singleton = cms.bool(False),
+          extension = cms.bool(False),
+          variables = cms.PSet(
+            P3Vars,
+            charge = Var('charge', int, doc='electric charge'),
+            n_valid_hits = Var('numberOfValidHits', int, doc='valid hits'),
+            n_lost_hits = Var(prefix + 'numberOfLostHits', int, doc='lost hits'),
+            n_muon_stations = Var(prefix + 'hitPattern().muonStationsWithValidHits', int, doc='muon stations with valid hits'),
+            n_dt_stations = Var(prefix + 'hitPattern().dtStationsWithValidHits', int, doc='DT stations with valid hits'),
+            n_dt_hits = Var(prefix + 'hitPattern().numberOfValidMuonDTHits', int, doc='valid DT hits'),
+            n_csc_stations = Var(prefix + 'hitPattern().cscStationsWithValidHits', int, doc='CSC stations with valid hits'),
+            n_csc_hits = Var(prefix + 'hitPattern().numberOfValidMuonCSCHits', int, doc='valid CSC hits'),
+            n_rpc_stations = Var(prefix + 'hitPattern().rpcStationsWithValidHits', int, doc='RPC stations with valid hits'),
+            n_rpc_hits = Var(prefix + 'hitPattern().numberOfValidMuonRPCHits', int, doc='valid RPC hits'),
+            chi2 = Var(prefix + 'chi2()', float, precision=10, doc='track chi2'),
+            ndof = Var(prefix + 'ndof()', float,precision=10,  doc='track ndof'),
+            dxy = Var(prefix + 'dxy()', float, precision=10, doc='dxy'),
+            dz = Var(prefix + 'dz()', float, precision=10, doc='dz'),
+            pt_error = Var(prefix + 'ptError()', float, precision=10, doc='pt error'),
+            theta_error = Var(prefix + 'thetaError()', float, precision=8, doc='theta error'),
+            phi_error = Var(prefix + 'phiError()', float, precision=8, doc='phi error'),
+          )
+        )
+
 def defineFiltersAndProducers(isRun2):
+  
   this = sys.modules[__name__]
 
-  this.selectedDSAMuons = cms.EDFilter(
-    'TrackSelector' if isRun2 else 'PATMuonRefSelector',
-    src = cms.InputTag('displacedStandAloneMuons') if isRun2 else
-          cms.InputTag('slimmedDisplacedMuons'),
-    cut = cms.string('''pt > 3. && abs(eta) < 2.4
-                        && numberOfValidHits > 15
-                        && ptError/pt < 1.
-                        && chi2/ndof < 2.5''') if isRun2 else
-          cms.string('''pt > 3. && abs(eta) < 2.4
-                        && numberOfValidHits > 15
-                        && bestTrack.ptError/pt < 1.
-                        && bestTrack.chi2/bestTrack.ndof < 2.5''')
-  )
+  this.selectedDSAMuons = defineSelectedDSAFilter(isDSATracks=True)
 
   this.vetoMuons = cms.EDFilter(
     'PATMuonRefSelector',
@@ -28,13 +97,7 @@ def defineFiltersAndProducers(isRun2):
     # cut = cms.string('isMediumMuon && dB < 0.08')
   )
 
-  this.diDSAMuon = cms.EDProducer(
-    'DiTrackBuilder' if isRun2 else 'DiMuonBuilder',
-    src = cms.InputTag('selectedDSAMuons'),
-    srcVeto = cms.InputTag('vetoMuons'),
-    postVtxSelection = cms.string('userFloat("sv_ndof") > 0'),
-    l1l2Interchangeable = cms.bool(True)
-  )
+  this.diDSAMuon = defineDiDSAMuonProducer(isDSATracks=True)
 
   this.diSTA = cms.EDProducer(
     'DiMuonBuilder',
@@ -63,14 +126,7 @@ def defineFiltersAndProducers(isRun2):
     l1l2Interchangeable = cms.bool(True)
   )
 
-  this.patDSAMuon = cms.EDProducer(
-    'MuTrackBuilder' if isRun2 else 'DiMuonBuilder',
-    src1 = cms.InputTag('finalMuons'),
-    src2 = cms.InputTag('selectedDSAMuons'),
-    srcVeto = cms.InputTag('vetoMuons'),
-    lep1Selection = diMuon.lepSelection,
-    postVtxSelection = diDSAMuon.postVtxSelection
-  )
+  this.patDSAMuon = defnePatDSAMuonProducer(isDSATracks=True)
 
   this.patSTA = cms.EDProducer(
     'DiMuonBuilder',
@@ -81,14 +137,7 @@ def defineFiltersAndProducers(isRun2):
     postVtxSelection = diDSAMuon.postVtxSelection
   )
 
-  this.eleDSAMuon = cms.EDProducer(
-    'EleTrackBuilder' if isRun2 else 'EleMuBuilder',
-    src1 = cms.InputTag('finalElectrons'),
-    src2 = cms.InputTag('selectedDSAMuons'),
-    src2Veto = cms.InputTag('vetoMuons'),
-    lep1Selection = cms.string('pt > 5. && abs(eta) < 2.5 && abs(dB("PV2D")) > 0.01'),
-    postVtxSelection = diDSAMuon.postVtxSelection
-  )
+  this.eleDSAMuon = defineEleDSAMuonProducer(isDSATracks=True)
 
   this.eleSTA = cms.EDProducer(
     'EleMuBuilder',
@@ -100,63 +149,12 @@ def defineFiltersAndProducers(isRun2):
     postVtxSelection = diDSAMuon.postVtxSelection
   )
 
-  prefix = '' if isRun2 else 'bestTrack().'
-  this.dsaTable = cms.EDProducer(
-    'SimpleTrackFlatTableProducer' if isRun2 else 'SimpleCandidateFlatTableProducer',
-    src = cms.InputTag('selectedDSAMuons'),
-    cut = cms.string('1'), # if we place a cut here, the indexing will be wrong
-    name = cms.string('DSAMuon'),
-    doc = cms.string('Displaced standalone muon variables'),
-    singleton = cms.bool(False),
-    extension = cms.bool(False),
-    variables = cms.PSet(
-      P3Vars,
-      charge = Var('charge', int, doc='electric charge'),
-      n_valid_hits = Var('numberOfValidHits', int, doc='valid hits'),
-      n_lost_hits = Var(prefix + 'numberOfLostHits', int, doc='lost hits'),
-      n_muon_stations = Var(prefix + 'hitPattern().muonStationsWithValidHits', int, doc='muon stations with valid hits'),
-      n_dt_stations = Var(prefix + 'hitPattern().dtStationsWithValidHits', int, doc='DT stations with valid hits'),
-      n_dt_hits = Var(prefix + 'hitPattern().numberOfValidMuonDTHits', int, doc='valid DT hits'),
-      n_csc_stations = Var(prefix + 'hitPattern().cscStationsWithValidHits', int, doc='CSC stations with valid hits'),
-      n_csc_hits = Var(prefix + 'hitPattern().numberOfValidMuonCSCHits', int, doc='valid CSC hits'),
-      n_rpc_stations = Var(prefix + 'hitPattern().rpcStationsWithValidHits', int, doc='RPC stations with valid hits'),
-      n_rpc_hits = Var(prefix + 'hitPattern().numberOfValidMuonRPCHits', int, doc='valid RPC hits'),
-      chi2 = Var(prefix + 'chi2()', float, precision=10, doc='track chi2'),
-      ndof = Var(prefix + 'ndof()', float,precision=10,  doc='track ndof'),
-      dxy = Var(prefix + 'dxy()', float, precision=10, doc='dxy'),
-      dz = Var(prefix + 'dz()', float, precision=10, doc='dz'),
-      pt_error = Var(prefix + 'ptError()', float, precision=10, doc='pt error'),
-      theta_error = Var(prefix + 'thetaError()', float, precision=8, doc='theta error'),
-      phi_error = Var(prefix + 'phiError()', float, precision=8, doc='phi error'),
-    )
+  this.dsaTable = defineDSATableProducer(isDSATracks=True)
+
+  this.dsaIsoTable = cms.EDProducer(
+    'TrackIsoTableProducer',
+    name = cms.string('DSAMuon')
   )
-
-  if isRun2:
-
-    this.dsaIsoTable = cms.EDProducer(
-      'TrackIsoTableProducer',
-      name = cms.string('DSAMuon')
-    )
-
-  else:
-    this.dsaTable.variables.dxy = Var('dB("PV2D")', float, precision=10, doc='dxy (with sign) wrt first PV, in cm')
-    this.dsaTable.variables.dz = Var('dB("PVDZ")', float, precision=10, doc='dz (with sign) wrt first PV, in cm')
-    this.dsaTable.variables.pfIsolationR03_sumChargedHadronPt = Var('pfIsolationR03().sumChargedHadronPt()', float, doc='PF isolation dR=0.3, charged hadron component')
-    this.dsaTable.variables.pfIsolationR03_sumChargedParticlePt = Var('pfIsolationR03().sumChargedParticlePt()', float, doc='PF isolation dR=0.3, charged particle component')
-    this.dsaTable.variables.pfIsolationR03_sumNeutralHadronEt = Var('pfIsolationR03().sumNeutralHadronEt()', float, doc='PF isolation dR=0.3, neutral hadron component')
-    this.dsaTable.variables.pfIsolationR03_sumPhotonEt = Var('pfIsolationR03().sumPhotonEt()', float, doc='PF isolation dR=0.3, photon component')
-    this.dsaTable.variables.pfIsolationR03_sumPUPt = Var('pfIsolationR03().sumPUPt()', float, doc='PF isolation dR=0.3, charged PU component')
-    this.dsaTable.variables.pfIsolationR04_sumChargedHadronPt = Var('pfIsolationR04().sumChargedHadronPt()', float, doc='PF isolation dR=0.4, charged hadron component')
-    this.dsaTable.variables.pfIsolationR04_sumChargedParticlePt = Var('pfIsolationR04().sumChargedParticlePt()', float, doc='PF isolation dR=0.4, charged particle component')
-    this.dsaTable.variables.pfIsolationR04_sumNeutralHadronEt = Var('pfIsolationR04().sumNeutralHadronEt()', float, doc='PF isolation dR=0.4, neutral hadron component')
-    this.dsaTable.variables.pfIsolationR04_sumPhotonEt = Var('pfIsolationR04().sumPhotonEt()', float, doc='PF isolation dR=0.4, photon component')
-    this.dsaTable.variables.pfIsolationR04_sumPUPt = Var('pfIsolationR04().sumPUPt()', float, doc='PF isolation dR=0.4, charged PU component')
-    this.dsaTable.variables.rpcTimeInOut = Var('rpcTime().timeAtIpInOut', float, doc='RPC time in out')
-    this.dsaTable.variables.timeInOut = Var('time().timeAtIpInOut', float, doc='time in out')
-    this.dsaTable.variables.rpcTimeInOutErr = Var('rpcTime().timeAtIpInOutErr', float, doc='RPC time error in out')
-    this.dsaTable.variables.timeInOutErr = Var('time().timeAtIpInOutErr', float, doc='time error in out')
-    this.dsaTable.variables.rpcTimeNdof = Var('rpcTime().nDof', float, doc='RPC time ndof')
-    this.dsaTable.variables.timeNdof = Var('time().nDof', float, doc='time ndof')
 
   this.diDSAMuonTable = cms.EDProducer(
     'SimpleCompositeCandidateFlatTableProducer',
@@ -190,6 +188,34 @@ def defineFiltersAndProducers(isRun2):
       fit_pt = ufloat('fitted_pt', precision=8),
     )
   )
+
+  if not isRun2:
+
+    # In Run 3 save also DSA muons from pat::Muon collection
+    this.selectedDSAMuonsPat = defineSelectedDSAFilter(isDSATracks=False)
+    this.diDSAMuonPat = defineDiDSAMuonProducer(isDSATracks=False)
+    this.patDSAMuonPat = defnePatDSAMuonProducer(isDSATracks=False)
+    this.eleDSAMuonPat = defineEleDSAMuonProducer(isDSATracks=False)
+    this.dsaPatTable = defineDSATableProducer(isDSATracks=False)
+
+    this.dsaPatTable.variables.dxy = Var('dB("PV2D")', float, precision=10, doc='dxy (with sign) wrt first PV, in cm')
+    this.dsaPatTable.variables.dz = Var('dB("PVDZ")', float, precision=10, doc='dz (with sign) wrt first PV, in cm')
+    this.dsaPatTable.variables.pfIsolationR03_sumChargedHadronPt = Var('pfIsolationR03().sumChargedHadronPt()', float, doc='PF isolation dR=0.3, charged hadron component')
+    this.dsaPatTable.variables.pfIsolationR03_sumChargedParticlePt = Var('pfIsolationR03().sumChargedParticlePt()', float, doc='PF isolation dR=0.3, charged particle component')
+    this.dsaPatTable.variables.pfIsolationR03_sumNeutralHadronEt = Var('pfIsolationR03().sumNeutralHadronEt()', float, doc='PF isolation dR=0.3, neutral hadron component')
+    this.dsaPatTable.variables.pfIsolationR03_sumPhotonEt = Var('pfIsolationR03().sumPhotonEt()', float, doc='PF isolation dR=0.3, photon component')
+    this.dsaPatTable.variables.pfIsolationR03_sumPUPt = Var('pfIsolationR03().sumPUPt()', float, doc='PF isolation dR=0.3, charged PU component')
+    this.dsaPatTable.variables.pfIsolationR04_sumChargedHadronPt = Var('pfIsolationR04().sumChargedHadronPt()', float, doc='PF isolation dR=0.4, charged hadron component')
+    this.dsaPatTable.variables.pfIsolationR04_sumChargedParticlePt = Var('pfIsolationR04().sumChargedParticlePt()', float, doc='PF isolation dR=0.4, charged particle component')
+    this.dsaPatTable.variables.pfIsolationR04_sumNeutralHadronEt = Var('pfIsolationR04().sumNeutralHadronEt()', float, doc='PF isolation dR=0.4, neutral hadron component')
+    this.dsaPatTable.variables.pfIsolationR04_sumPhotonEt = Var('pfIsolationR04().sumPhotonEt()', float, doc='PF isolation dR=0.4, photon component')
+    this.dsaPatTable.variables.pfIsolationR04_sumPUPt = Var('pfIsolationR04().sumPUPt()', float, doc='PF isolation dR=0.4, charged PU component')
+    this.dsaPatTable.variables.rpcTimeInOut = Var('rpcTime().timeAtIpInOut', float, doc='RPC time in out')
+    this.dsaPatTable.variables.timeInOut = Var('time().timeAtIpInOut', float, doc='time in out')
+    this.dsaPatTable.variables.rpcTimeInOutErr = Var('rpcTime().timeAtIpInOutErr', float, doc='RPC time error in out')
+    this.dsaPatTable.variables.timeInOutErr = Var('time().timeAtIpInOutErr', float, doc='time error in out')
+    this.dsaPatTable.variables.rpcTimeNdof = Var('rpcTime().nDof', float, doc='RPC time ndof')
+    this.dsaPatTable.variables.timeNdof = Var('time().nDof', float, doc='time ndof')
 
 
 def customiseGenParticles(process):
@@ -239,6 +265,7 @@ def nanoAOD_customizeDisplacedDiMuon(process, isRun2):
           ))
         _all_tables.append(x_name + 'Table')
   _all_modules = _all_filters + _all_producers + _all_tables
+  print(_all_modules)
 
   process.MessageLogger.cerr.FwkReport.reportEvery = 100
 
