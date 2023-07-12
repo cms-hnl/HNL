@@ -72,7 +72,7 @@ Production should be run on the server that have the crab stageout area mounted 
 1. Test that the code works locally (take one of the miniAOD files as an input). E.g.
    ```sh
    mkdir -p tmp && cd tmp
-   cmsEnv python3 $ANALYSIS_PATH/RunKit/nanoProdWrapper.py customise=HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon maxEvents=2000 sampleType=data storeFailed=True era=Run2_2018 inputFiles=file:/eos/cms/store/group/phys_tau/kandroso/miniAOD_UL18/SingleMuon.root skimCfg=$ANALYSIS_PATH/HNL/NanoProd/config/skim_mu.yaml writePSet=True skimSetup=skim skimSetupFailed=skim_failed createTar=False
+   cmsEnv python3 $ANALYSIS_PATH/RunKit/nanoProdWrapper.py customise=HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon_Run2 maxEvents=2000 sampleType=data storeFailed=True era=Run2_2018 inputFiles=file:/eos/cms/store/group/phys_tau/kandroso/miniAOD_UL18/SingleMuon.root skimCfg=$ANALYSIS_PATH/HNL/NanoProd/config/skim_mu.yaml writePSet=True skimSetup=skim skimSetupFailed=skim_failed createTar=False
    cmsEnv $ANALYSIS_PATH/RunKit/crabJob.sh
    ```
    Check that output file `nano_0.root` is created correctly. After that, you can remove `tmp` directory:
@@ -107,3 +107,9 @@ Production should be run on the server that have the crab stageout area mounted 
      ```sh
      python RunKit/crabOverseer.py
      ```
+## Example of miniAOD->nanoAOD skims production for Run 3
+```sh
+mkdir -p tmp && cd tmp
+cmsEnv python3 $ANALYSIS_PATH/RunKit/nanoProdWrapper.py maxEvents=2000 sampleType=mc era=Run3_2022 inputFiles=file:/eos/home-k/kandroso/cms-hnl/Run3/Run3Summer22/HeavyNeutrino_trilepton_M-4_V-0.00151_mu_massiveAndCKM_LO/miniAOD_1.root writePSet=True createTar=False customise=HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon_Run3 skimCfg=$ANALYSIS_PATH/HNL/NanoProd/config/skim_mu.yaml skimSetup=skim skimSetupFailed=skim_failed
+cmsEnv $ANALYSIS_PATH/RunKit/crabJob.sh
+```
