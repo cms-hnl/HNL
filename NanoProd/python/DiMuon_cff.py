@@ -33,7 +33,7 @@ def defineDiDSAMuonProducer(isDSATracks):
           l1l2Interchangeable = cms.bool(True)
         )
 
-def defnePatDSAMuonProducer(isDSATracks):
+def definePatDSAMuonProducer(isDSATracks):
   return cms.EDProducer(
           'MuTrackBuilder' if isDSATracks else 'DiMuonBuilder',
           src1 = cms.InputTag('finalMuons'),
@@ -130,7 +130,7 @@ def defineFiltersAndProducers(isRun2):
     l1l2Interchangeable = cms.bool(True)
   )
 
-  this.patDSAMuon = defnePatDSAMuonProducer(isDSATracks=True)
+  this.patDSAMuon = definePatDSAMuonProducer(isDSATracks=True)
 
   this.patSTA = cms.EDProducer(
     'DiMuonBuilder',
@@ -196,7 +196,7 @@ def defineFiltersAndProducers(isRun2):
   # Save DSA pat:Muons 
   this.selectedDSAMuonsPat = defineSelectedDSAFilter(isDSATracks=False, isRun2=isRun2)
   this.diDSAMuonPat = defineDiDSAMuonProducer(isDSATracks=False)
-  this.patDSAMuonPat = defnePatDSAMuonProducer(isDSATracks=False)
+  this.patDSAMuonPat = definePatDSAMuonProducer(isDSATracks=False)
   this.eleDSAMuonPat = defineEleDSAMuonProducer(isDSATracks=False)
   this.dsaPatTable = defineDSATableProducer(isDSATracks=False)
 
