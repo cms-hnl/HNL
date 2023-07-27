@@ -21,6 +21,8 @@ KinVtxFitter::KinVtxFitter(const std::vector<reco::TransientTrack>& tracks,
   }
 
   KinematicParticleVertexFitter kcv_fitter;
+  // Move secondary vertex cutoff to the end of the muon system
+  kcv_fitter.setTrackerBounds(650., 1000.);
   RefCountedKinematicTree vtx_tree = kcv_fitter.fit(particles);
 
   if (vtx_tree->isEmpty() || !vtx_tree->isValid() || !vtx_tree->isConsistent()) {
