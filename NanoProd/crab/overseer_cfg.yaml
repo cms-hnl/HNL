@@ -1,6 +1,6 @@
 cmsswPython: RunKit/nanoProdWrapper.py
 params:
-  customise: HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon
+  customise: HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon_Run3
   skimCfg: skim_mu.yaml
   skimSetup: skim
   skimSetupFailed: skim_failed

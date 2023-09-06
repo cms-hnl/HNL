@@ -1,0 +1,9 @@
+config:
+    params:
+      era: Run2_2016
+      sampleType: data
+      storeFailed: false
+
+SingleMuon_2016F: /SingleMuon/Run2016F-UL2016_MiniAODv2-v2/MINIAOD
+SingleMuon_2016G: /SingleMuon/Run2016G-UL2016_MiniAODv2-v2/MINIAOD
+SingleMuon_2016H: /SingleMuon/Run2016H-UL2016_MiniAODv2-v2/MINIAOD
