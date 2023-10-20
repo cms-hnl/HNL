@@ -2,7 +2,7 @@ config:
   params:
     era: Run2_2017
     sampleType: mc
-    storeFailed: false
+    storeFailed: true
 
 HNL_M-1_V-0.0794_e_V-0.0794_mu: local:/eos/user/a/amascell/HNL/output/Run2_2017/HeavyNeutrino_trilepton_M-1_V-0.0794_e_V-0.0794_mu_massiveAndCKM_LO
 HNL_M-2_V-0.00954_e_V-0.00954_mu: local:/eos/user/a/amascell/HNL/output/Run2_2017/HeavyNeutrino_trilepton_M-2_V-0.00954_e_V-0.00954_mu_massiveAndCKM_LO
