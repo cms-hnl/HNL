@@ -1,0 +1,12 @@
+config:
+  params:
+    era: Run2_2018
+    sampleType: mc
+    storeFailed: true
+
+HNL_M-1_V-0.0794_e_V-0.0794_mu: local:/eos/user/a/amascell/HNL/output/Run2_2018/HeavyNeutrino_trilepton_M-1_V-0.0794_e_V-0.0794_mu_massiveAndCKM_LO
+HNL_M-2_V-0.00954_e_V-0.00954_mu: local:/eos/user/a/amascell/HNL/output/Run2_2018/HeavyNeutrino_trilepton_M-2_V-0.00954_e_V-0.00954_mu_massiveAndCKM_LO
+HNL_M-3_V-0.00268_e_V-0.00268_mu: local:/eos/user/a/amascell/HNL/output/Run2_2018/HeavyNeutrino_trilepton_M-3_V-0.00268_e_V-0.00268_mu_massiveAndCKM_LO
+HNL_M-4_V-0.00107_e_V-0.00107_mu: local:/eos/user/a/amascell/HNL/output/Run2_2018/HeavyNeutrino_trilepton_M-4_V-0.00107_e_V-0.00107_mu_massiveAndCKM_LO
+HNL_M-5_V-0.000528_e_V-0.000528_mu: local:/eos/user/a/amascell/HNL/output/Run2_2018/HeavyNeutrino_trilepton_M-5_V-0.000528_e_V-0.000528_mu_massiveAndCKM_LO
+HNL_M-6_V-0.000297_e_V-0.000297_mu: local:/eos/user/a/amascell/HNL/output/Run2_2018/HeavyNeutrino_trilepton_M-6_V-0.000297_e_V-0.000297_mu_massiveAndCKM_LO

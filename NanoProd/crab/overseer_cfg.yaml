@@ -1,6 +1,6 @@
 cmsswPython: RunKit/nanoProdWrapper.py
 params:
-  customise: HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon
+  customise: HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon_Run3
   skimCfg: skim_mu.yaml
   skimSetup: skim
   skimSetupFailed: skim_failed
@@ -17,6 +17,8 @@ filesToTransfer:
   - RunKit/skim_tree.py
   - RunKit/sh_tools.py
   - HNL/NanoProd/config/skim_mu.yaml
+  - HNL/NanoProd/python/DiMuon_cff.py
+  - HNL/NanoProd/python/common_cff.py
 
 # Update destination site and paths before launching a production
 site: T3_CH_CERNBOX

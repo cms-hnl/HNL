@@ -1,7 +1,30 @@
+import importlib
+import os
 import sys
 import FWCore.ParameterSet.Config as cms
 from PhysicsTools.NanoAOD.common_cff import CandVars, Var, P3Vars
-from HNL.NanoProd.common_cff import ufloat, uint, ubool
+
+def load(module_file, default_path):
+  print(f'BASE PATH: {os.path.join(os.getenv("CMSSW_BASE"), "..", module_file)}')
+  module_path = os.path.join(default_path, module_file)
+  if not os.path.exists(module_path):
+    module_path = os.path.join(os.path.dirname(__file__), module_file)
+    if not os.path.exists(module_path):
+      module_path = os.path.join(os.getenv("CMSSW_BASE"), 'src', module_file)
+      if not os.path.exists(module_path):
+        module_path = os.path.join(os.getenv("CMSSW_BASE"), '..', module_file)
+        if not os.path.exists(module_path):
+          raise RuntimeError(f"Cannot find path to {module_file}.")
+
+  module_name, module_ext = os.path.splitext(module_file)
+  spec = importlib.util.spec_from_file_location(module_name, module_path)
+  module = importlib.util.module_from_spec(spec)
+  sys.modules[module_name] = module
+  spec.loader.exec_module(module)
+  return module
+
+common_cff = load('common_cff.py', os.path.join(os.getenv("CMSSW_BASE"), 'src/HNL/NanoProd/python/'))
+from common_cff import ufloat, uint, ubool
 
 
 def defineSelectedDSAFilter(isDSATracks, isRun2):
