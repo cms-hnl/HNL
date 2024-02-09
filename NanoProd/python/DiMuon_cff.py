@@ -31,10 +31,12 @@ def defineSelectedDSAFilter(isDSATracks, isRun2):
   # Use a placeholder for displaced pat::Muons in Run 2 
   slimmed_muons_src = cms.InputTag('slimmedMuons') if isRun2 else cms.InputTag('slimmedDisplacedMuons')
   slimmed_muons_cut = cms.string('''pt < 0''') if isRun2 else \
-                      cms.string('''pt > 3. && abs(eta) < 2.4
-                              && numberOfValidHits > 15
-                              && bestTrack.ptError/pt < 1.
-                              && bestTrack.chi2/bestTrack.ndof < 2.5''') 
+                      cms.string('''outerTrack.isNonnull
+                              && outerTrack.pt > 3.
+                              && abs(outerTrack.eta) < 2.4
+                              && outerTrack.numberOfValidHits > 15
+                              && outerTrack.ptError/outerTrack.pt < 1.
+                              && outerTrack.chi2/outerTrack.ndof < 2.5''') 
   return cms.EDFilter(
           'TrackSelector' if isDSATracks else 'PATMuonRefSelector',
           src = cms.InputTag('displacedStandAloneMuons') if isDSATracks else
@@ -53,7 +55,9 @@ def defineDiDSAMuonProducer(isDSATracks):
                 cms.InputTag('selectedDSAMuonsPat'),
           srcVeto = cms.InputTag('vetoMuons'),
           postVtxSelection = cms.string('userFloat("sv_ndof") > 0'),
-          l1l2Interchangeable = cms.bool(True)
+          l1l2Interchangeable = cms.bool(True),
+          # Use muon standalone tracks for displaced muons in Run 3
+          useStandalone = cms.bool(False) if isDSATracks else cms.bool(True)
         )
 
 def definePatDSAMuonProducer(isDSATracks):
@@ -79,7 +83,7 @@ def defineEleDSAMuonProducer(isDSATracks):
         )
 
 def defineDSATableProducer(isDSATracks):
-  prefix = '' if isDSATracks else 'bestTrack().'
+  prefix = '' if isDSATracks else 'outerTrack.'
   return cms.EDProducer(
           'SimpleTrackFlatTableProducer' if isDSATracks else 'SimpleCandidateFlatTableProducer',
           src = cms.InputTag('selectedDSAMuons') if isDSATracks else 
@@ -92,7 +96,7 @@ def defineDSATableProducer(isDSATracks):
           variables = cms.PSet(
             P3Vars,
             charge = Var('charge', int, doc='electric charge'),
-            n_valid_hits = Var('numberOfValidHits', int, doc='valid hits'),
+            n_valid_hits = Var(prefix + 'numberOfValidHits', int, doc='valid hits'),
             n_lost_hits = Var(prefix + 'numberOfLostHits', int, doc='lost hits'),
             n_muon_stations = Var(prefix + 'hitPattern().muonStationsWithValidHits', int, doc='muon stations with valid hits'),
             n_dt_stations = Var(prefix + 'hitPattern().dtStationsWithValidHits', int, doc='DT stations with valid hits'),

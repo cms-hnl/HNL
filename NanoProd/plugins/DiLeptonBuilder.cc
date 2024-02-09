@@ -31,6 +31,13 @@ namespace {
   const reco::Track& getTrack<reco::Track>(const reco::Track& lep) { return lep; }
 
   template<typename Lepton>
+  const reco::Track& getOuterTrack(const Lepton& lep) { return *lep.bestTrack(); }
+  template<>
+  const reco::Track& getOuterTrack<reco::Track>(const reco::Track& lep) { return lep; }
+  template<>
+  const reco::Track& getOuterTrack<pat::Muon>(const pat::Muon& mu) { return *mu.outerTrack().get(); }
+
+  template<typename Lepton>
   double getMass();
 
   template<>
@@ -74,6 +81,12 @@ namespace {
     }
     return false;
   }
+
+  template<typename Lepton>
+  bool outerTrackAvailable(const Lepton& lep) { return true; }
+
+  template<>
+  bool outerTrackAvailable<pat::Muon>(const pat::Muon& mu) { return mu.outerTrack().isNonnull(); }
 
   template<typename Lepton1, typename Lepton2>
   struct DiLeptonBuilderHelper {
@@ -173,6 +186,10 @@ public:
       verbose_ = cfg.getParameter<int>("verbose");
     }
 
+    if(cfg.exists("useStandalone")) {
+      useStandalone_ = cfg.getParameter<bool>("useStandalone");
+    }
+
     produces<pat::CompositeCandidateCollection>();
   }
 
@@ -194,6 +211,7 @@ private:
   bool commonSrc_{false};
   double deltaR_thr_{0.3};
   int verbose_{0};
+  bool useStandalone_{false};
 };
 
 
@@ -244,8 +262,23 @@ void DiLeptonBuilder<Lepton1, Lepton2>::produce(edm::StreamID, edm::Event& evt, 
       // before making the SV, cut on the info we have
       if(pre_vtx_selection_ && !(*pre_vtx_selection_)(lepton_pair) ) continue;
 
-      reco::TransientTrack tt_l1(tt_builder.build(getTrack(l1)));
-      reco::TransientTrack tt_l2(tt_builder.build(getTrack(l2)));
+      reco::Track track_l1;
+      reco::Track track_l2;
+      if (useStandalone_) {
+        if (!(outerTrackAvailable(l1) && outerTrackAvailable(l2))) {
+          std::cout << "skipping this pair" << std::endl;
+          continue;
+        }
+        track_l1 = getOuterTrack(l1);
+        track_l2 = getOuterTrack(l2);
+      }
+      else {
+        track_l1 = getTrack(l1);
+        track_l2 = getTrack(l2);
+      }
+      reco::TransientTrack tt_l1(tt_builder.build(track_l1));
+      reco::TransientTrack tt_l2(tt_builder.build(track_l2));
+
       try {
         KinVtxFitter fitter(
           {tt_l1, tt_l2},
@@ -275,9 +308,9 @@ void DiLeptonBuilder<Lepton1, Lepton2>::produce(edm::StreamID, edm::Event& evt, 
         if(verbose_ > 0) {
           std::cerr << e.what() << std::endl;
           std::cerr << "l1 pt, eta, phi, dxy, dz " << l1.pt() << ", " << l1.eta() << ", " << l1.phi()
-                    << ", " << getTrack(l1).dxy() << ", " << getTrack(l1).dz() << std::endl;
+                    << ", " << track_l1.dxy() << ", " << track_l1.dz() << std::endl;
           std::cerr << "l2 pt, eta, phi, dxy, dz " << l2.pt() << ", " << l2.eta() << ", " << l2.phi()
-                    << ", " << getTrack(l2).dxy() << ", " << getTrack(l2).dz()<< std::endl;
+                    << ", " << track_l2.dxy() << ", " << track_l2.dz()<< std::endl;
         }
         for (const auto& str : { "sv_chi2", "sv_ndof", "sv_prob", "fitted_mass", "fitted_massErr",
                                  "fitted_pt", "vtx_x", "vtx_y", "vtx_z", "vtx_ex", "vtx_ey", "vtx_ez" }) {
