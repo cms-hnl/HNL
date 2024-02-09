@@ -57,7 +57,9 @@ def defineDiDSAMuonProducer(isDSATracks):
           postVtxSelection = cms.string('userFloat("sv_ndof") > 0'),
           l1l2Interchangeable = cms.bool(True),
           # Use muon standalone tracks for displaced muons in Run 3
-          useStandalone = cms.bool(False) if isDSATracks else cms.bool(True)
+          # Only pat::Muon objects with valid outerTrack will pass the useStandalone flag
+          useStandalone_l1 = cms.bool(False) if isDSATracks else cms.bool(True),
+          useStandalone_l2 = cms.bool(False) if isDSATracks else cms.bool(True)
         )
 
 def definePatDSAMuonProducer(isDSATracks):
@@ -68,7 +70,9 @@ def definePatDSAMuonProducer(isDSATracks):
                  cms.InputTag('selectedDSAMuonsPat'),
           srcVeto = cms.InputTag('vetoMuons'),
           lep1Selection = diMuon.lepSelection,
-          postVtxSelection = diDSAMuon.postVtxSelection
+          postVtxSelection = diDSAMuon.postVtxSelection,
+          useStandalone_l1 = cms.bool(False),
+          useStandalone_l2 = cms.bool(False) if isDSATracks else cms.bool(True)
         )
 
 def defineEleDSAMuonProducer(isDSATracks):
@@ -94,8 +98,10 @@ def defineDSATableProducer(isDSATracks):
           singleton = cms.bool(False),
           extension = cms.bool(False),
           variables = cms.PSet(
-            P3Vars,
-            charge = Var('charge', int, doc='electric charge'),
+            pt  = Var(prefix + "pt",  float, precision=-1),
+            phi = Var(prefix + "phi", float, precision=12),
+            eta  = Var(prefix + "eta",  float,precision=12),
+            charge = Var(prefix + 'charge', int, doc='electric charge'),
             n_valid_hits = Var(prefix + 'numberOfValidHits', int, doc='valid hits'),
             n_lost_hits = Var(prefix + 'numberOfLostHits', int, doc='lost hits'),
             n_muon_stations = Var(prefix + 'hitPattern().muonStationsWithValidHits', int, doc='muon stations with valid hits'),
