@@ -1,10 +1,10 @@
 config:
   params:
-    era: Run3_2022CDE
-    sampleType: data
+    era: Run2_2018
+    sampleType: mc
     storeFailed: false
     maxEvents: 100
     customiseCmds: "process.Timing = cms.Service('Timing', summaryOnly=cms.untracked.bool(True)); process.SimpleMemoryCheck = cms.Service('SimpleMemoryCheck', jobReportOutputOnly=cms.untracked.bool(True)); process.CPU = cms.Service('CPU')"
   dryrun: true
 
-SingleMuon_2022C: /Muon/Run2022C-27Jun2023-v1/MINIAOD
+HNL_M-2.5_V-0.00691_mu: local:/eos/user/a/amascell/HNL/output/Run2_2018/HeavyNeutrino_trilepton_M-2.5_V-0.00691_mu_massiveAndCKM_LO

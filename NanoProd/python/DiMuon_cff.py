@@ -83,7 +83,9 @@ def defineEleDSAMuonProducer(isDSATracks):
                  cms.InputTag('selectedDSAMuonsPat'),
           src2Veto = cms.InputTag('vetoMuons'),
           lep1Selection = cms.string('pt > 5. && abs(eta) < 2.5 && abs(dB("PV2D")) > 0.01'),
-          postVtxSelection = diDSAMuon.postVtxSelection
+          postVtxSelection = diDSAMuon.postVtxSelection,
+          useStandalone_l1 = cms.bool(False),
+          useStandalone_l2 = cms.bool(False) if isDSATracks else cms.bool(True)
         )
 
 def defineDSATableProducer(isDSATracks):
@@ -233,8 +235,8 @@ def defineFiltersAndProducers(isRun2):
   this.eleDSAMuonPat = defineEleDSAMuonProducer(isDSATracks=False)
   this.dsaPatTable = defineDSATableProducer(isDSATracks=False)
 
-  this.dsaPatTable.variables.dxy = Var('dB("PV2D")', float, precision=10, doc='dxy (with sign) wrt first PV, in cm')
-  this.dsaPatTable.variables.dz = Var('dB("PVDZ")', float, precision=10, doc='dz (with sign) wrt first PV, in cm')
+  this.dsaPatTable.variables.dxy = Var('outerTrack.dxy()', float, precision=10, doc='dxy (with sign) wrt first PV, in cm')
+  this.dsaPatTable.variables.dz = Var('outerTrack.dz()', float, precision=10, doc='dz (with sign) wrt first PV, in cm')
   this.dsaPatTable.variables.pfIsolationR03_sumChargedHadronPt = Var('pfIsolationR03().sumChargedHadronPt()', float, doc='PF isolation dR=0.3, charged hadron component')
   this.dsaPatTable.variables.pfIsolationR03_sumChargedParticlePt = Var('pfIsolationR03().sumChargedParticlePt()', float, doc='PF isolation dR=0.3, charged particle component')
   this.dsaPatTable.variables.pfIsolationR03_sumNeutralHadronEt = Var('pfIsolationR03().sumNeutralHadronEt()', float, doc='PF isolation dR=0.3, neutral hadron component')

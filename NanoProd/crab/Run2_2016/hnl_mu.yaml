@@ -3,10 +3,19 @@ config:
     era: Run2_2016
     sampleType: mc
     storeFailed: true
+    customise: HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon_Run2
 
-HNL_M-1_V-0.112_mu_2016: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-1_V-0.112_mu_massiveAndCKM_LO
-HNL_M-2_V-0.0135_mu_2016: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-2_V-0.0135_mu_massiveAndCKM_LO
-HNL_M-3_V-0.00379_mu_2016: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-3_V-0.00379_mu_massiveAndCKM_LO
-HNL_M-4_V-0.00151_mu_2016: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-4_V-0.00151_mu_massiveAndCKM_LO
-HNL_M-5_V-0.000746_mu_2016: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-5_V-0.000746_mu_massiveAndCKM_LO
-HNL_M-6_V-0.00042_mu_2016: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-6_V-0.00042_mu_massiveAndCKM_LO
+# HNL_M-1_V-0.112_mu_2016: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-1_V-0.112_mu_massiveAndCKM_LO
+# HNL_M-2_V-0.0135_mu_2016: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-2_V-0.0135_mu_massiveAndCKM_LO
+# HNL_M-3_V-0.00379_mu_2016: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-3_V-0.00379_mu_massiveAndCKM_LO
+# HNL_M-4_V-0.00151_mu_2016: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-4_V-0.00151_mu_massiveAndCKM_LO
+# HNL_M-5_V-0.000746_mu_2016: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-5_V-0.000746_mu_massiveAndCKM_LO
+# HNL_M-6_V-0.00042_mu_2016: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-6_V-0.00042_mu_massiveAndCKM_LO
+HNL_M-0.5_V-0.864_mu: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-0.5_V-0.864_mu_massiveAndCKM_LO
+HNL_M-1.5_V-0.032_mu: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-1.5_V-0.032_mu_massiveAndCKM_LO
+HNL_M-2.5_V-0.00691_mu: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-2.5_V-0.00691_mu_massiveAndCKM_LO
+HNL_M-3.5_V-0.00252_mu: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-3.5_V-0.00252_mu_massiveAndCKM_LO
+HNL_M-4.2_V-0.00146_mu: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-4.2_V-0.00146_mu_massiveAndCKM_LO
+HNL_M-4.4_V-0.00127_mu: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-4.4_V-0.00127_mu_massiveAndCKM_LO
+HNL_M-4.6_V-0.00111_mu: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-4.6_V-0.00111_mu_massiveAndCKM_LO
+HNL_M-4.8_V-0.000976_mu: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-4.8_V-0.000976_mu_massiveAndCKM_LO
