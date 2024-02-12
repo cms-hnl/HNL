@@ -3,6 +3,7 @@ config:
       era: Run2_2016
       sampleType: data
       storeFailed: false
+      customise: HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon_Run2
 
 SingleMuon_2016F: /SingleMuon/Run2016F-UL2016_MiniAODv2-v2/MINIAOD
 SingleMuon_2016G: /SingleMuon/Run2016G-UL2016_MiniAODv2-v2/MINIAOD

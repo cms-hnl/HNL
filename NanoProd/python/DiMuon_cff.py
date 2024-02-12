@@ -31,10 +31,12 @@ def defineSelectedDSAFilter(isDSATracks, isRun2):
   # Use a placeholder for displaced pat::Muons in Run 2 
   slimmed_muons_src = cms.InputTag('slimmedMuons') if isRun2 else cms.InputTag('slimmedDisplacedMuons')
   slimmed_muons_cut = cms.string('''pt < 0''') if isRun2 else \
-                      cms.string('''pt > 3. && abs(eta) < 2.4
-                              && numberOfValidHits > 15
-                              && bestTrack.ptError/pt < 1.
-                              && bestTrack.chi2/bestTrack.ndof < 2.5''') 
+                      cms.string('''outerTrack.isNonnull
+                              && outerTrack.pt > 3.
+                              && abs(outerTrack.eta) < 2.4
+                              && outerTrack.numberOfValidHits > 15
+                              && outerTrack.ptError/outerTrack.pt < 1.
+                              && outerTrack.chi2/outerTrack.ndof < 2.5''') 
   return cms.EDFilter(
           'TrackSelector' if isDSATracks else 'PATMuonRefSelector',
           src = cms.InputTag('displacedStandAloneMuons') if isDSATracks else
@@ -53,7 +55,11 @@ def defineDiDSAMuonProducer(isDSATracks):
                 cms.InputTag('selectedDSAMuonsPat'),
           srcVeto = cms.InputTag('vetoMuons'),
           postVtxSelection = cms.string('userFloat("sv_ndof") > 0'),
-          l1l2Interchangeable = cms.bool(True)
+          l1l2Interchangeable = cms.bool(True),
+          # Use muon standalone tracks for displaced muons in Run 3
+          # Only pat::Muon objects with valid outerTrack will pass the useStandalone flag
+          useStandalone_l1 = cms.bool(False) if isDSATracks else cms.bool(True),
+          useStandalone_l2 = cms.bool(False) if isDSATracks else cms.bool(True)
         )
 
 def definePatDSAMuonProducer(isDSATracks):
@@ -64,7 +70,9 @@ def definePatDSAMuonProducer(isDSATracks):
                  cms.InputTag('selectedDSAMuonsPat'),
           srcVeto = cms.InputTag('vetoMuons'),
           lep1Selection = diMuon.lepSelection,
-          postVtxSelection = diDSAMuon.postVtxSelection
+          postVtxSelection = diDSAMuon.postVtxSelection,
+          useStandalone_l1 = cms.bool(False),
+          useStandalone_l2 = cms.bool(False) if isDSATracks else cms.bool(True)
         )
 
 def defineEleDSAMuonProducer(isDSATracks):
@@ -75,11 +83,13 @@ def defineEleDSAMuonProducer(isDSATracks):
                  cms.InputTag('selectedDSAMuonsPat'),
           src2Veto = cms.InputTag('vetoMuons'),
           lep1Selection = cms.string('pt > 5. && abs(eta) < 2.5 && abs(dB("PV2D")) > 0.01'),
-          postVtxSelection = diDSAMuon.postVtxSelection
+          postVtxSelection = diDSAMuon.postVtxSelection,
+          useStandalone_l1 = cms.bool(False),
+          useStandalone_l2 = cms.bool(False) if isDSATracks else cms.bool(True)
         )
 
 def defineDSATableProducer(isDSATracks):
-  prefix = '' if isDSATracks else 'bestTrack().'
+  prefix = '' if isDSATracks else 'outerTrack.'
   return cms.EDProducer(
           'SimpleTrackFlatTableProducer' if isDSATracks else 'SimpleCandidateFlatTableProducer',
           src = cms.InputTag('selectedDSAMuons') if isDSATracks else 
@@ -90,9 +100,11 @@ def defineDSATableProducer(isDSATracks):
           singleton = cms.bool(False),
           extension = cms.bool(False),
           variables = cms.PSet(
-            P3Vars,
-            charge = Var('charge', int, doc='electric charge'),
-            n_valid_hits = Var('numberOfValidHits', int, doc='valid hits'),
+            pt  = Var(prefix + "pt",  float, precision=-1),
+            phi = Var(prefix + "phi", float, precision=12),
+            eta  = Var(prefix + "eta",  float,precision=12),
+            charge = Var(prefix + 'charge', int, doc='electric charge'),
+            n_valid_hits = Var(prefix + 'numberOfValidHits', int, doc='valid hits'),
             n_lost_hits = Var(prefix + 'numberOfLostHits', int, doc='lost hits'),
             n_muon_stations = Var(prefix + 'hitPattern().muonStationsWithValidHits', int, doc='muon stations with valid hits'),
             n_dt_stations = Var(prefix + 'hitPattern().dtStationsWithValidHits', int, doc='DT stations with valid hits'),
@@ -223,8 +235,8 @@ def defineFiltersAndProducers(isRun2):
   this.eleDSAMuonPat = defineEleDSAMuonProducer(isDSATracks=False)
   this.dsaPatTable = defineDSATableProducer(isDSATracks=False)
 
-  this.dsaPatTable.variables.dxy = Var('dB("PV2D")', float, precision=10, doc='dxy (with sign) wrt first PV, in cm')
-  this.dsaPatTable.variables.dz = Var('dB("PVDZ")', float, precision=10, doc='dz (with sign) wrt first PV, in cm')
+  this.dsaPatTable.variables.dxy = Var('outerTrack.dxy()', float, precision=10, doc='dxy (with sign) wrt first PV, in cm')
+  this.dsaPatTable.variables.dz = Var('outerTrack.dz()', float, precision=10, doc='dz (with sign) wrt first PV, in cm')
   this.dsaPatTable.variables.pfIsolationR03_sumChargedHadronPt = Var('pfIsolationR03().sumChargedHadronPt()', float, doc='PF isolation dR=0.3, charged hadron component')
   this.dsaPatTable.variables.pfIsolationR03_sumChargedParticlePt = Var('pfIsolationR03().sumChargedParticlePt()', float, doc='PF isolation dR=0.3, charged particle component')
   this.dsaPatTable.variables.pfIsolationR03_sumNeutralHadronEt = Var('pfIsolationR03().sumNeutralHadronEt()', float, doc='PF isolation dR=0.3, neutral hadron component')

@@ -3,7 +3,9 @@ config:
       era: Run3_2022CDE
       sampleType: data
       storeFailed: false
+      customise: HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon_Run3
 
-Muon_2022C: /Muon/Run2022C-27Jun2023-v1/MINIAOD
-Muon_2022D: /Muon/Run2022D-27Jun2023-v2/MINIAOD
-Muon_2022E: /Muon/Run2022E-27Jun2023-v1/MINIAOD
+Muon_2022C: /Muon/Run2022C-22Sep2023-v1/MINIAOD
+SingleMuon_2022C: /SingleMuon/Run2022C-22Sep2023-v1/MINIAOD
+Muon_2022D: /Muon/Run2022D-22Sep2023-v1/MINIAOD
+Muon_2022E: /Muon/Run2022E-22Sep2023-v1/MINIAOD

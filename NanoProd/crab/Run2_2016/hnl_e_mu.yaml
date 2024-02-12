@@ -3,6 +3,7 @@ config:
     era: Run2_2016
     sampleType: mc
     storeFailed: true
+    customise: HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon_Run2
 
 HNL_M-1_V-0.0794_e_V-0.0794_mu: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-1_V-0.0794_e_V-0.0794_mu_massiveAndCKM_LO
 HNL_M-2_V-0.00954_e_V-0.00954_mu: local:/eos/user/a/amascell/HNL/output/Run2_2016/HeavyNeutrino_trilepton_M-2_V-0.00954_e_V-0.00954_mu_massiveAndCKM_LO

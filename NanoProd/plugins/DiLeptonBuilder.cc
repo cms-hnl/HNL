@@ -31,6 +31,13 @@ namespace {
   const reco::Track& getTrack<reco::Track>(const reco::Track& lep) { return lep; }
 
   template<typename Lepton>
+  const reco::Track& getOuterTrack(const Lepton& lep) { return *lep.bestTrack(); }
+  template<>
+  const reco::Track& getOuterTrack<reco::Track>(const reco::Track& lep) { return lep; }
+  template<>
+  const reco::Track& getOuterTrack<pat::Muon>(const pat::Muon& mu) { return *mu.outerTrack().get(); }
+
+  template<typename Lepton>
   double getMass();
 
   template<>
@@ -74,6 +81,12 @@ namespace {
     }
     return false;
   }
+
+  template<typename Lepton>
+  bool outerTrackAvailable(const Lepton& lep) { return false; }
+
+  template<>
+  bool outerTrackAvailable<pat::Muon>(const pat::Muon& mu) { return mu.outerTrack().isNonnull(); }
 
   template<typename Lepton1, typename Lepton2>
   struct DiLeptonBuilderHelper {
@@ -173,6 +186,15 @@ public:
       verbose_ = cfg.getParameter<int>("verbose");
     }
 
+    if(cfg.exists("useStandalone_l1")) {
+      useStandalone_l1_ = cfg.getParameter<bool>("useStandalone_l1");
+    }
+    if(cfg.exists("useStandalone_l2")) {
+      useStandalone_l2_ = cfg.getParameter<bool>("useStandalone_l2");
+    }
+    if(l1l2_interchangeable_ && (useStandalone_l1_ != useStandalone_l2_))
+      throw std::runtime_error("Inconsistent config. l1l2Interchangeable = true, but useStandalone_l1 != useStandalone_l2.");
+
     produces<pat::CompositeCandidateCollection>();
   }
 
@@ -194,6 +216,8 @@ private:
   bool commonSrc_{false};
   double deltaR_thr_{0.3};
   int verbose_{0};
+  bool useStandalone_l1_{false};
+  bool useStandalone_l2_{false};
 };
 
 
@@ -218,22 +242,48 @@ void DiLeptonBuilder<Lepton1, Lepton2>::produce(edm::StreamID, edm::Event& evt, 
   for(size_t l1_idx = 0; l1_idx < leptons1->size(); ++l1_idx) {
     const Lepton1& l1 = leptons1->at(l1_idx);
     if(l1_selection_ && !(*l1_selection_)(l1)) continue;
-    if(src1Veto_ && dR_match(l1, *vetoLeptons1, deltaR_thr_)) continue;
+
+    // Get track associated to l1
+    reco::Track track_l1;
+    if (useStandalone_l1_) {
+      // Accept only pat::Muon objects with an outer track
+      if (!(outerTrackAvailable)(l1)) continue; 
+      track_l1 = getOuterTrack(l1);
+    } else {
+    track_l1 = getTrack(l1);
+    }
+    // Apply veto on l1 using deltaR matching with chosen l1 track 
+    if(src1Veto_ && dR_match(track_l1, *vetoLeptons1, deltaR_thr_)) continue;
 
     const size_t l2_start = l1l2_interchangeable_ && commonSrc_ ? l1_idx + 1 : 0;
     for(size_t l2_idx = l2_start; l2_idx < leptons2->size(); ++l2_idx) {
       const Lepton2& l2 = leptons2->at(l2_idx);
       if(Helper::isSameObject(l1, l2)) continue;
       if(l2_selection_ && !(*l2_selection_)(l2)) continue;
-      if(src2Veto_ && dR_match(l2, *vetoLeptons2, deltaR_thr_)) continue;
+
+      // Get track associated to l2
+      reco::Track track_l2;
+      if (useStandalone_l2_) {
+        if (!(outerTrackAvailable)(l2)) continue;
+        track_l2 = getOuterTrack(l2);
+      } else {
+        track_l2 = getTrack(l2);
+      }
+      // Apply veto on l2 using deltaR matching with chosen l2 track 
+      if(src2Veto_ && dR_match(track_l2, *vetoLeptons2, deltaR_thr_)) continue;
 
       pat::CompositeCandidate lepton_pair;
-      lepton_pair.setP4(getP4(l1) + getP4(l2));
-      lepton_pair.setCharge(l1.charge() + l2.charge());
-      lepton_pair.addUserFloat("lep_deltaR", reco::deltaR(l1, l2));
+      /* Can't always use track here because muon mass is assumed in P4 computation of reco::Track */
+      if (useStandalone_l1_ && useStandalone_l2_) {lepton_pair.setP4(getP4(track_l1) + getP4(track_l2));}
+      else if (useStandalone_l1_) {lepton_pair.setP4(getP4(track_l1) + getP4(l2));}
+      else if (useStandalone_l2_) {lepton_pair.setP4(getP4(l1) + getP4(track_l2));}
+      else {lepton_pair.setP4(getP4(l1) + getP4(l2));}
+
+      lepton_pair.setCharge(track_l1.charge() + track_l2.charge());
+      lepton_pair.addUserFloat("lep_deltaR", reco::deltaR(track_l1, track_l2));
 
       // Put the lepton passing the corresponding selection
-      if(!l1l2_interchangeable_ || l1.pt() >= l2.pt()) {
+      if(!l1l2_interchangeable_ || track_l1.pt() >= track_l2.pt()) {
         lepton_pair.addUserInt("l1_idx", l1_idx);
         lepton_pair.addUserInt("l2_idx", l2_idx);
       } else {
@@ -244,8 +294,9 @@ void DiLeptonBuilder<Lepton1, Lepton2>::produce(edm::StreamID, edm::Event& evt, 
       // before making the SV, cut on the info we have
       if(pre_vtx_selection_ && !(*pre_vtx_selection_)(lepton_pair) ) continue;
 
-      reco::TransientTrack tt_l1(tt_builder.build(getTrack(l1)));
-      reco::TransientTrack tt_l2(tt_builder.build(getTrack(l2)));
+      reco::TransientTrack tt_l1(tt_builder.build(track_l1));
+      reco::TransientTrack tt_l2(tt_builder.build(track_l2));
+
       try {
         KinVtxFitter fitter(
           {tt_l1, tt_l2},
@@ -274,10 +325,10 @@ void DiLeptonBuilder<Lepton1, Lepton2>::produce(edm::StreamID, edm::Event& evt, 
       } catch (const std::exception& e) {
         if(verbose_ > 0) {
           std::cerr << e.what() << std::endl;
-          std::cerr << "l1 pt, eta, phi, dxy, dz " << l1.pt() << ", " << l1.eta() << ", " << l1.phi()
-                    << ", " << getTrack(l1).dxy() << ", " << getTrack(l1).dz() << std::endl;
-          std::cerr << "l2 pt, eta, phi, dxy, dz " << l2.pt() << ", " << l2.eta() << ", " << l2.phi()
-                    << ", " << getTrack(l2).dxy() << ", " << getTrack(l2).dz()<< std::endl;
+          std::cerr << "l1 pt, eta, phi, dxy, dz " << track_l1.pt() << ", " << track_l1.eta() << ", " << track_l1.phi()
+                    << ", " << track_l1.dxy() << ", " << track_l1.dz() << std::endl;
+          std::cerr << "l2 pt, eta, phi, dxy, dz " << track_l2.pt() << ", " << track_l2.eta() << ", " << track_l2.phi()
+                    << ", " << track_l2.dxy() << ", " << track_l2.dz()<< std::endl;
         }
         for (const auto& str : { "sv_chi2", "sv_ndof", "sv_prob", "fitted_mass", "fitted_massErr",
                                  "fitted_pt", "vtx_x", "vtx_y", "vtx_z", "vtx_ex", "vtx_ey", "vtx_ez" }) {
