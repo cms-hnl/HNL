@@ -1,10 +1,11 @@
 config:
   params:
     era: Run2_2018
-    sampleType: mc
+    sampleType: data
     storeFailed: false
     maxEvents: 100
+    customise: HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon_Run3
     customiseCmds: "process.Timing = cms.Service('Timing', summaryOnly=cms.untracked.bool(True)); process.SimpleMemoryCheck = cms.Service('SimpleMemoryCheck', jobReportOutputOnly=cms.untracked.bool(True)); process.CPU = cms.Service('CPU')"
   dryrun: true
 
-HNL_M-2.5_V-0.00691_mu: local:/eos/user/a/amascell/HNL/output/Run2_2018/HeavyNeutrino_trilepton_M-2.5_V-0.00691_mu_massiveAndCKM_LO
+Muon_2022C: /Muon/Run2022C-22Sep2023-v1/MINIAOD
