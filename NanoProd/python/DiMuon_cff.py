@@ -3,6 +3,7 @@ import os
 import sys
 import FWCore.ParameterSet.Config as cms
 from PhysicsTools.NanoAOD.common_cff import CandVars, Var, P3Vars
+from PhysicsTools.NanoAOD.muons_cff import muonTable
 
 def load(module_file, default_path):
   print(f'BASE PATH: {os.path.join(os.getenv("CMSSW_BASE"), "..", module_file)}')
@@ -233,20 +234,42 @@ def defineFiltersAndProducers(isRun2):
   this.diDSAMuonPat = defineDiDSAMuonProducer(isDSATracks=False)
   this.patDSAMuonPat = definePatDSAMuonProducer(isDSATracks=False)
   this.eleDSAMuonPat = defineEleDSAMuonProducer(isDSATracks=False)
-  this.dsaPatTable = defineDSATableProducer(isDSATracks=False)
+  # this.dsaPatTable = defineDSATableProducer(isDSATracks=False)
+  this.dsaPatTable = muonTable.clone(
+    src = cms.InputTag('selectedDSAMuonsPat'),
+    cut = cms.string('1'), # if we place a cut here, the indexing will be wrong
+    name = cms.string('DSAMuonPat'),
+    doc = cms.string('Displaced muon variables'),
+    singleton = cms.bool(False),
+  )
+  del this.dsaPatTable.variables.miniPFRelIso_all
+  del this.dsaPatTable.variables.miniPFRelIso_chg
+  del this.dsaPatTable.variables.mvaMuID_WP
+  del this.dsaPatTable.externalVariables
 
-  this.dsaPatTable.variables.dxy = Var('outerTrack.dxy()', float, precision=10, doc='dxy (with sign) wrt first PV, in cm')
-  this.dsaPatTable.variables.dz = Var('outerTrack.dz()', float, precision=10, doc='dz (with sign) wrt first PV, in cm')
-  this.dsaPatTable.variables.pfIsolationR03_sumChargedHadronPt = Var('pfIsolationR03().sumChargedHadronPt()', float, doc='PF isolation dR=0.3, charged hadron component')
-  this.dsaPatTable.variables.pfIsolationR03_sumChargedParticlePt = Var('pfIsolationR03().sumChargedParticlePt()', float, doc='PF isolation dR=0.3, charged particle component')
-  this.dsaPatTable.variables.pfIsolationR03_sumNeutralHadronEt = Var('pfIsolationR03().sumNeutralHadronEt()', float, doc='PF isolation dR=0.3, neutral hadron component')
-  this.dsaPatTable.variables.pfIsolationR03_sumPhotonEt = Var('pfIsolationR03().sumPhotonEt()', float, doc='PF isolation dR=0.3, photon component')
-  this.dsaPatTable.variables.pfIsolationR03_sumPUPt = Var('pfIsolationR03().sumPUPt()', float, doc='PF isolation dR=0.3, charged PU component')
-  this.dsaPatTable.variables.pfIsolationR04_sumChargedHadronPt = Var('pfIsolationR04().sumChargedHadronPt()', float, doc='PF isolation dR=0.4, charged hadron component')
-  this.dsaPatTable.variables.pfIsolationR04_sumChargedParticlePt = Var('pfIsolationR04().sumChargedParticlePt()', float, doc='PF isolation dR=0.4, charged particle component')
-  this.dsaPatTable.variables.pfIsolationR04_sumNeutralHadronEt = Var('pfIsolationR04().sumNeutralHadronEt()', float, doc='PF isolation dR=0.4, neutral hadron component')
-  this.dsaPatTable.variables.pfIsolationR04_sumPhotonEt = Var('pfIsolationR04().sumPhotonEt()', float, doc='PF isolation dR=0.4, photon component')
-  this.dsaPatTable.variables.pfIsolationR04_sumPUPt = Var('pfIsolationR04().sumPUPt()', float, doc='PF isolation dR=0.4, charged PU component')
+  # Use outerTrack instead of bestTrack to make sure DSA track is considered for all muons
+  prefix = 'outerTrack.'
+  this.dsaPatTable.variables.pt  = Var(prefix + "pt",  float, precision=-1)
+  this.dsaPatTable.variables.phi = Var(prefix + "phi", float, precision=12)
+  this.dsaPatTable.variables.eta  = Var(prefix + "eta",  float,precision=12)
+  this.dsaPatTable.variables.charge = Var(prefix + 'charge', int, doc='electric charge')
+  this.dsaPatTable.variables.n_valid_hits = Var(prefix + 'numberOfValidHits', int, doc='valid hits')
+  this.dsaPatTable.variables.n_lost_hits = Var(prefix + 'numberOfLostHits', int, doc='lost hits')
+  this.dsaPatTable.variables.n_muon_stations = Var(prefix + 'hitPattern().muonStationsWithValidHits', int, doc='muon stations with valid hits')
+  this.dsaPatTable.variables.n_dt_stations = Var(prefix + 'hitPattern().dtStationsWithValidHits', int, doc='DT stations with valid hits')
+  this.dsaPatTable.variables.n_dt_hits = Var(prefix + 'hitPattern().numberOfValidMuonDTHits', int, doc='valid DT hits')
+  this.dsaPatTable.variables.n_csc_stations = Var(prefix + 'hitPattern().cscStationsWithValidHits', int, doc='CSC stations with valid hits')
+  this.dsaPatTable.variables.n_csc_hits = Var(prefix + 'hitPattern().numberOfValidMuonCSCHits', int, doc='valid CSC hits')
+  this.dsaPatTable.variables.n_rpc_stations = Var(prefix + 'hitPattern().rpcStationsWithValidHits', int, doc='RPC stations with valid hits')
+  this.dsaPatTable.variables.n_rpc_hits = Var(prefix + 'hitPattern().numberOfValidMuonRPCHits', int, doc='valid RPC hits')
+  this.dsaPatTable.variables.chi2 = Var(prefix + 'chi2()', float, precision=10, doc='track chi2')
+  this.dsaPatTable.variables.ndof = Var(prefix + 'ndof()', float,precision=10,  doc='track ndof')
+  this.dsaPatTable.variables.dxy = Var(prefix + 'dxy()', float, precision=10, doc='dxy (with sign) wrt first PV, in cm')
+  this.dsaPatTable.variables.dz = Var(prefix + 'dz()', float, precision=10, doc='dz (with sign) wrt first PV, in cm')
+  this.dsaPatTable.variables.pt_error = Var(prefix + 'ptError()', float, precision=10, doc='pt error')
+  this.dsaPatTable.variables.theta_error = Var(prefix + 'thetaError()', float, precision=8, doc='theta error')
+  this.dsaPatTable.variables.phi_error = Var(prefix + 'phiError()', float, precision=8, doc='phi error')
+  # time variables
   this.dsaPatTable.variables.rpcTimeInOut = Var('rpcTime().timeAtIpInOut', float, doc='RPC time in out')
   this.dsaPatTable.variables.timeInOut = Var('time().timeAtIpInOut', float, doc='time in out')
   this.dsaPatTable.variables.rpcTimeInOutErr = Var('rpcTime().timeAtIpInOutErr', float, doc='RPC time error in out')
