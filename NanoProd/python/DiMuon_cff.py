@@ -116,8 +116,10 @@ def defineDSATableProducer(isDSATracks):
             n_rpc_hits = Var(prefix + 'hitPattern().numberOfValidMuonRPCHits', int, doc='valid RPC hits'),
             chi2 = Var(prefix + 'chi2()', float, precision=10, doc='track chi2'),
             ndof = Var(prefix + 'ndof()', float,precision=10,  doc='track ndof'),
-            dxy = Var(prefix + 'dxy()', float, precision=10, doc='dxy'),
-            dz = Var(prefix + 'dz()', float, precision=10, doc='dz'),
+            dxy = Var(prefix + 'dxy()', float, precision=10, doc='dxy, in cm'),
+            dxyErr = Var(prefix + 'dxyError()',float,doc='dxy uncertainty, in cm',precision=6),
+            dz = Var(prefix + 'dz()', float, precision=10, doc='dz, in cm'),
+            dzErr = Var(prefix + 'dzError()',float,doc='dz uncertainty, in cm',precision=6),
             pt_error = Var(prefix + 'ptError()', float, precision=10, doc='pt error'),
             theta_error = Var(prefix + 'thetaError()', float, precision=8, doc='theta error'),
             phi_error = Var(prefix + 'phiError()', float, precision=8, doc='phi error'),
@@ -234,41 +236,37 @@ def defineFiltersAndProducers(isRun2):
   this.diDSAMuonPat = defineDiDSAMuonProducer(isDSATracks=False)
   this.patDSAMuonPat = definePatDSAMuonProducer(isDSATracks=False)
   this.eleDSAMuonPat = defineEleDSAMuonProducer(isDSATracks=False)
-  # this.dsaPatTable = defineDSATableProducer(isDSATracks=False)
-  this.dsaPatTable = muonTable.clone(
-    src = cms.InputTag('selectedDSAMuonsPat'),
-    cut = cms.string('1'), # if we place a cut here, the indexing will be wrong
-    name = cms.string('DSAMuonPat'),
-    doc = cms.string('Displaced muon variables'),
-    singleton = cms.bool(False),
-  )
-  del this.dsaPatTable.variables.miniPFRelIso_all
-  del this.dsaPatTable.variables.miniPFRelIso_chg
-  del this.dsaPatTable.variables.mvaMuID_WP
-  del this.dsaPatTable.externalVariables
+  this.dsaPatTable = defineDSATableProducer(isDSATracks=False)
 
-  # Use outerTrack instead of bestTrack to make sure DSA track is considered for all muons
-  prefix = 'outerTrack.'
-  this.dsaPatTable.variables.pt  = Var(prefix + "pt",  float, precision=-1)
-  this.dsaPatTable.variables.phi = Var(prefix + "phi", float, precision=12)
-  this.dsaPatTable.variables.eta  = Var(prefix + "eta",  float,precision=12)
-  this.dsaPatTable.variables.charge = Var(prefix + 'charge', int, doc='electric charge')
-  this.dsaPatTable.variables.n_valid_hits = Var(prefix + 'numberOfValidHits', int, doc='valid hits')
-  this.dsaPatTable.variables.n_lost_hits = Var(prefix + 'numberOfLostHits', int, doc='lost hits')
-  this.dsaPatTable.variables.n_muon_stations = Var(prefix + 'hitPattern().muonStationsWithValidHits', int, doc='muon stations with valid hits')
-  this.dsaPatTable.variables.n_dt_stations = Var(prefix + 'hitPattern().dtStationsWithValidHits', int, doc='DT stations with valid hits')
-  this.dsaPatTable.variables.n_dt_hits = Var(prefix + 'hitPattern().numberOfValidMuonDTHits', int, doc='valid DT hits')
-  this.dsaPatTable.variables.n_csc_stations = Var(prefix + 'hitPattern().cscStationsWithValidHits', int, doc='CSC stations with valid hits')
-  this.dsaPatTable.variables.n_csc_hits = Var(prefix + 'hitPattern().numberOfValidMuonCSCHits', int, doc='valid CSC hits')
-  this.dsaPatTable.variables.n_rpc_stations = Var(prefix + 'hitPattern().rpcStationsWithValidHits', int, doc='RPC stations with valid hits')
-  this.dsaPatTable.variables.n_rpc_hits = Var(prefix + 'hitPattern().numberOfValidMuonRPCHits', int, doc='valid RPC hits')
-  this.dsaPatTable.variables.chi2 = Var(prefix + 'chi2()', float, precision=10, doc='track chi2')
-  this.dsaPatTable.variables.ndof = Var(prefix + 'ndof()', float,precision=10,  doc='track ndof')
-  this.dsaPatTable.variables.dxy = Var(prefix + 'dxy()', float, precision=10, doc='dxy (with sign) wrt first PV, in cm')
-  this.dsaPatTable.variables.dz = Var(prefix + 'dz()', float, precision=10, doc='dz (with sign) wrt first PV, in cm')
-  this.dsaPatTable.variables.pt_error = Var(prefix + 'ptError()', float, precision=10, doc='pt error')
-  this.dsaPatTable.variables.theta_error = Var(prefix + 'thetaError()', float, precision=8, doc='theta error')
-  this.dsaPatTable.variables.phi_error = Var(prefix + 'phiError()', float, precision=8, doc='phi error')
+  # Save additional variables (only available for pat::Muon)
+  this.dsaPatTable.variables.segmentComp = Var("segmentCompatibility()", float, doc = "muon segment compatibility", precision=14) # keep higher precision since people have cuts with 3 digits on this
+  this.dsaPatTable.variables.nStations = Var("numberOfMatchedStations", "uint8", doc = "number of matched stations with default arbitration (segment & track)")
+  this.dsaPatTable.variables.nTrackerLayers = Var(f"?track.isNonnull?innerTrack().hitPattern().trackerLayersWithMeasurement():0", "uint8", doc = "number of layers in the tracker")
+  this.dsaPatTable.variables.highPurity = Var(f"?track.isNonnull?innerTrack().quality('highPurity'):0", bool, doc = "inner track is high purity")
+  this.dsaPatTable.variables.jetIdx = Var("?hasUserCand('jet')?userCand('jet').key():-1", "int16", doc="index of the associated jet (-1 if none)")
+  this.dsaPatTable.variables.svIdx = Var("?hasUserCand('vertex')?userCand('vertex').key():-1", "int16", doc="index of matching secondary vertex")
+  this.dsaPatTable.variables.tkRelIso = Var("isolationR03().sumPt/tunePMuonBestTrack().pt",float,doc="Tracker-based relative isolation dR=0.3 for highPt, trkIso/tunePpt",precision=6)
+  this.dsaPatTable.variables.pfRelIso03_chg = Var("pfIsolationR03().sumChargedHadronPt/pt",float,doc="PF relative isolation dR=0.3, charged component")
+  this.dsaPatTable.variables.pfRelIso03_all = Var("(pfIsolationR03().sumChargedHadronPt + max(pfIsolationR03().sumNeutralHadronEt + pfIsolationR03().sumPhotonEt - pfIsolationR03().sumPUPt/2,0.0))/pt",float,doc="PF relative isolation dR=0.3, total (deltaBeta corrections)")
+  this.dsaPatTable.variables.pfRelIso04_all = Var("(pfIsolationR04().sumChargedHadronPt + max(pfIsolationR04().sumNeutralHadronEt + pfIsolationR04().sumPhotonEt - pfIsolationR04().sumPUPt/2,0.0))/pt",float,doc="PF relative isolation dR=0.4, total (deltaBeta corrections)")
+  this.dsaPatTable.variables.jetRelIso = Var("?userCand('jetForLepJetVar').isNonnull()?(1./userFloat('ptRatio'))-1.:(pfIsolationR04().sumChargedHadronPt + max(pfIsolationR04().sumNeutralHadronEt + pfIsolationR04().sumPhotonEt - pfIsolationR04().sumPUPt/2,0.0))/pt",float,doc="Relative isolation in matched jet (1/ptRatio-1, pfRelIso04_all if no matched jet)",precision=8)
+  this.dsaPatTable.variables.jetPtRelv2 = Var("?userCand('jetForLepJetVar').isNonnull()?userFloat('ptRel'):0",float,doc="Relative momentum of the lepton with respect to the closest jet after subtracting the lepton",precision=8)
+  this.dsaPatTable.variables.tightCharge = Var("?(muonBestTrack().ptError()/muonBestTrack().pt() < 0.2)?2:0", "uint8", doc="Tight charge criterion using pterr/pt of muonBestTrack (0:fail, 2:pass)")
+  this.dsaPatTable.variables.isGlobal = Var("isGlobalMuon",bool,doc="muon is global muon")
+  this.dsaPatTable.variables.isTracker = Var("isTrackerMuon",bool,doc="muon is tracker muon")
+  this.dsaPatTable.variables.isStandalone = Var("isStandAloneMuon",bool,doc="muon is a standalone muon")
+  this.dsaPatTable.variables.softId = Var("passed('SoftCutBasedId')",bool,doc="soft cut-based ID")
+  this.dsaPatTable.variables.softMva = Var("softMvaValue()",float,doc="soft MVA ID score",precision=6)
+  this.dsaPatTable.variables.highPtId = Var("?passed('CutBasedIdGlobalHighPt')?2:passed('CutBasedIdTrkHighPt')","uint8",doc="high-pT cut-based ID (1 = tracker high pT, 2 = global high pT, which includes tracker high pT)")
+  this.dsaPatTable.variables.pfIsoId = Var("passed('PFIsoVeryLoose')+passed('PFIsoLoose')+passed('PFIsoMedium')+passed('PFIsoTight')+passed('PFIsoVeryTight')+passed('PFIsoVeryVeryTight')","uint8",doc="PFIso ID from miniAOD selector (1=PFIsoVeryLoose, 2=PFIsoLoose, 3=PFIsoMedium, 4=PFIsoTight, 5=PFIsoVeryTight, 6=PFIsoVeryVeryTight)")
+  this.dsaPatTable.variables.tkIsoId = Var("?passed('TkIsoTight')?2:passed('TkIsoLoose')","uint8",doc="TkIso ID (1=TkIsoLoose, 2=TkIsoTight)")
+  this.dsaPatTable.variables.miniIsoId = Var("passed('MiniIsoLoose')+passed('MiniIsoMedium')+passed('MiniIsoTight')+passed('MiniIsoVeryTight')","uint8",doc="MiniIso ID from miniAOD selector (1=MiniIsoLoose, 2=MiniIsoMedium, 3=MiniIsoTight, 4=MiniIsoVeryTight)")
+  this.dsaPatTable.variables.mvaMuID = Var("mvaIDValue()",float,doc="MVA-based ID score ",precision=6)
+  this.dsaPatTable.variables.multiIsoId = Var("?passed('MultiIsoMedium')?2:passed('MultiIsoLoose')","uint8",doc="MultiIsoId from miniAOD selector (1=MultiIsoLoose, 2=MultiIsoMedium)")
+  this.dsaPatTable.variables.puppiIsoId = Var("passed('PuppiIsoLoose')+passed('PuppiIsoMedium')+passed('PuppiIsoTight')", "uint8", doc="PuppiIsoId from miniAOD selector (1=Loose, 2=Medium, 3=Tight)")
+  this.dsaPatTable.variables.triggerIdLoose = Var("passed('TriggerIdLoose')",bool,doc="TriggerIdLoose ID")
+  this.dsaPatTable.variables.inTimeMuon = Var("passed('InTimeMuon')",bool,doc="inTimeMuon ID")
+  this.dsaPatTable.variables.jetNDauCharged = Var("?userCand('jetForLepJetVar').isNonnull()?userFloat('jetNDauChargedMVASel'):0", "uint8", doc="number of charged daughters of the closest jet")
   # time variables
   this.dsaPatTable.variables.rpcTimeInOut = Var('rpcTime().timeAtIpInOut', float, doc='RPC time in out')
   this.dsaPatTable.variables.timeInOut = Var('time().timeAtIpInOut', float, doc='time in out')
@@ -276,6 +274,16 @@ def defineFiltersAndProducers(isRun2):
   this.dsaPatTable.variables.timeInOutErr = Var('time().timeAtIpInOutErr', float, doc='time error in out')
   this.dsaPatTable.variables.rpcTimeNdof = Var('rpcTime().nDof', float, doc='RPC time ndof')
   this.dsaPatTable.variables.timeNdof = Var('time().nDof', float, doc='time ndof')
+
+  # track kink
+  this.dsaPatTable.variables.trkKink = Var('combinedQuality().trkKink', float, doc='trkKink')
+
+  # For some variables, save also bestTrack information
+  common_vars = ['chi2', 'ndof', 'dxy', 'dxyErr', 'dz', 'dzErr', 'pt_error', 'n_valid_hits', 'n_lost_hits']
+  for var_name in common_vars:
+    orig_var = getattr(this.dsaPatTable.variables, var_name)
+    final_expr = ''.join(['bestTrack.'] + orig_var.expr.value().split('.')[1:])
+    setattr(this.dsaPatTable.variables, f'bestTrack_{var_name}', orig_var.clone(expr=final_expr))
 
 
 def customiseGenParticles(process):
