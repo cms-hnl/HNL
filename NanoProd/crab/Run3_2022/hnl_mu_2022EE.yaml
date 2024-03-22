@@ -1,0 +1,11 @@
+config:
+  params:
+    era: Run3_2022EE
+    sampleType: mc
+    storeFailed: true
+    customise: HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon_Run3
+  crabOutput: /store/user/amascell/crab_2022EE_hnl
+  localCrabOutput: /eos/user/a/amascell/crab_2022EE_hnl
+  finalOutput: /eos/user/a/amascell/cms-hnl/Run3_2022EE
+
+HNL_M-3_V-0.00379_mu: local:/eos/user/a/amascell/HNL/output/Run3/Run3Summer22EE/HeavyNeutrino_trilepton_M-3_V-0.00379_mu_massiveAndCKM_LO/
