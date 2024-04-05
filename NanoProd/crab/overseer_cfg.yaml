@@ -1,6 +1,13 @@
 cmsswPython: RunKit/nanoProdWrapper.py
 params:
   maxEvents: -1
+  outputs:
+    - file: nano.root
+      crabOutput: T3_CH_CERNBOX:/store/user/amascell/crab_2022_hnl
+      finalOutput: T3_CH_CERNBOX:/store/user/amascell/cms-hnl/Run3_2022
+      skimCfg: skim_mu.yaml
+      skimSetup: skim
+      skimSetupFailed: skim_failed
 splitting: FileBased
 unitsPerJob: 8
 scriptExe: RunKit/crabJob.sh
@@ -14,7 +21,6 @@ filesToTransfer:
   - HNL/NanoProd/config/skim_mu.yaml
   - HNL/NanoProd/python/DiMuon_cff.py
   - HNL/NanoProd/python/common_cff.py
-
 maxMemory: 2500
 numCores: 1
 inputDBS: global
