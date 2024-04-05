@@ -5,5 +5,10 @@ config:
       storeFailed: false
       customise: HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon_Run3
 
-Muon_2022F: /Muon/Run2022F-22Sep2023-v2/MINIAOD
+Muon_2022F: 
+  inputDataset: /Muon/Run2022F-22Sep2023-v2/MINIAOD
+  ignoreFiles:
+    - /store/data/Run2022F/Muon/MINIAOD/22Sep2023-v2/60001/472bd277-b4ef-455a-a06a-f83503b2ac84.root
+    - /store/data/Run2022F/Muon/MINIAOD/22Sep2023-v2/60000/908fe79e-51c2-430f-b18d-504f243323ab.root
+    - /store/data/Run2022F/Muon/MINIAOD/22Sep2023-v2/60001/ef366e02-a87f-4674-a890-746679ec54bb.root
 Muon_2022G: /Muon/Run2022G-22Sep2023-v1/MINIAOD
