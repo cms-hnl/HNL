@@ -1,11 +1,17 @@
 config:
   params:
-    era: Run2_2018
+    outputs:
+      - file: nano.root
+        crabOutput: T3_CH_CERNBOX:/store/user/amascell/crab_2022_hnl
+        finalOutput: T3_CH_CERNBOX:/store/user/amascell/cms-hnl/Run3_2022
+        skimCfg: skim_mu.yaml
+        skimSetup: skim
+        skimSetupFailed: skim_failed
+    era: Run3_2022
     sampleType: data
-    storeFailed: false
-    maxEvents: 100
     customise: HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon_Run3
     customiseCmds: "process.Timing = cms.Service('Timing', summaryOnly=cms.untracked.bool(True)); process.SimpleMemoryCheck = cms.Service('SimpleMemoryCheck', jobReportOutputOnly=cms.untracked.bool(True)); process.CPU = cms.Service('CPU')"
+    copyInputsToLocal: false
   dryrun: true
 
 Muon_2022C: /Muon/Run2022C-22Sep2023-v1/MINIAOD

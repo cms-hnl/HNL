@@ -2,10 +2,25 @@ config:
   params:
     era: Run3_2022
     sampleType: mc
-    storeFailed: true
     customise: HNL/NanoProd/DiMuon_cff.nanoAOD_customizeDisplacedDiMuon_Run3
-  crabOutput: /store/user/amascell/crab_2022_hnl
-  localCrabOutput: /eos/user/a/amascell/crab_2022_hnl
-  finalOutput: /eos/user/a/amascell/cms-hnl/Run3_2022
+    outputs:
+      - file: nano.root
+        crabOutput: T3_CH_CERNBOX:/store/user/amascell/crab_2022_hnl
+        finalOutput: T3_CH_CERNBOX:/store/user/amascell/cms-hnl/Run3_2022
+        skimCfg: skim_mu.yaml
+        skimSetup: skim
+        skimSetupFailed: skim_failed
 
-HNL_M-3_V-0.00379_mu: local:/eos/user/a/amascell/HNL/output/Run3/Run3Summer22/HeavyNeutrino_trilepton_M-3_V-0.00379_mu_massiveAndCKM_LO/
+# HNL_M-3_V-0.00379_mu: T3_CH_CERNBOX:/store/user/amascell/HNL/output/Run3/Run3Summer22/HeavyNeutrino_trilepton_M-3_V-0.00379_mu_massiveAndCKM_LO/
+HNL_M-1.5_V-0.032_mu: T3_CH_CERNBOX:/store/user/amascell/HNL/output/Run3/Run3Summer22/HeavyNeutrino_trilepton_M-1.5_V-0.032_mu_massiveAndCKM_LO
+HNL_M-1_V-0.112_mu: T3_CH_CERNBOX:/store/user/amascell/HNL/output/Run3/Run3Summer22/HeavyNeutrino_trilepton_M-1_V-0.112_mu_massiveAndCKM_LO
+HNL_M-2.5_V-0.00691_mu: T3_CH_CERNBOX:/store/user/amascell/HNL/output/Run3/Run3Summer22/HeavyNeutrino_trilepton_M-2.5_V-0.00691_mu_massiveAndCKM_LO
+HNL_M-2_V-0.0135_mu: T3_CH_CERNBOX:/store/user/amascell/HNL/output/Run3/Run3Summer22/HeavyNeutrino_trilepton_M-2_V-0.0135_mu_massiveAndCKM_LO
+HNL_M-3.5_V-0.00252_mu: T3_CH_CERNBOX:/store/user/amascell/HNL/output/Run3/Run3Summer22/HeavyNeutrino_trilepton_M-3.5_V-0.00252_mu_massiveAndCKM_LO
+HNL_M-4.2_V-0.00146_mu: T3_CH_CERNBOX:/store/user/amascell/HNL/output/Run3/Run3Summer22/HeavyNeutrino_trilepton_M-4.2_V-0.00146_mu_massiveAndCKM_LO
+HNL_M-4.4_V-0.00127_mu: T3_CH_CERNBOX:/store/user/amascell/HNL/output/Run3/Run3Summer22/HeavyNeutrino_trilepton_M-4.4_V-0.00127_mu_massiveAndCKM_LO
+HNL_M-4.6_V-0.00111_mu: T3_CH_CERNBOX:/store/user/amascell/HNL/output/Run3/Run3Summer22/HeavyNeutrino_trilepton_M-4.6_V-0.00111_mu_massiveAndCKM_LO
+HNL_M-4.8_V-0.000976_mu: T3_CH_CERNBOX:/store/user/amascell/HNL/output/Run3/Run3Summer22/HeavyNeutrino_trilepton_M-4.8_V-0.000976_mu_massiveAndCKM_LO
+HNL_M-4_V-0.00151_mu: T3_CH_CERNBOX:/store/user/amascell/HNL/output/Run3/Run3Summer22/HeavyNeutrino_trilepton_M-4_V-0.00151_mu_massiveAndCKM_LO
+HNL_M-5_V-0.000746_mu: T3_CH_CERNBOX:/store/user/amascell/HNL/output/Run3/Run3Summer22/HeavyNeutrino_trilepton_M-5_V-0.000746_mu_massiveAndCKM_LO
+HNL_M-6_V-0.00042_mu: T3_CH_CERNBOX:/store/user/amascell/HNL/output/Run3/Run3Summer22/HeavyNeutrino_trilepton_M-6_V-0.00042_mu_massiveAndCKM_LO

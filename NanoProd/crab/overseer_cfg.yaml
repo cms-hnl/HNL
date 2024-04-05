@@ -1,29 +1,19 @@
 cmsswPython: RunKit/nanoProdWrapper.py
 params:
-  skimCfg: skim_mu.yaml
-  skimSetup: skim
-  skimSetupFailed: skim_failed
   maxEvents: -1
 splitting: FileBased
 unitsPerJob: 8
 scriptExe: RunKit/crabJob.sh
-outputFiles:
-  - nano.root
 filesToTransfer:
   - RunKit/crabJob.sh
   - RunKit/crabJob.py
   - RunKit/crabJob_nanoProd.py
   - RunKit/skim_tree.py
-  - RunKit/sh_tools.py
+  - RunKit/grid_tools.py
+  - RunKit/run_tools.py
   - HNL/NanoProd/config/skim_mu.yaml
   - HNL/NanoProd/python/DiMuon_cff.py
   - HNL/NanoProd/python/common_cff.py
-
-# Update destination site and paths before launching a production
-site: T3_CH_CERNBOX
-# crabOutput: /store/user/amascell/crab_2022_hnl
-# localCrabOutput: /eos/user/a/amascell/crab_2022_hnl
-# finalOutput: /eos/user/a/amascell/cms-hnl/Run3_2022
 
 maxMemory: 2500
 numCores: 1
@@ -34,9 +24,11 @@ maxRecoveryCount: 3
 updateInterval: 60 # minutes
 localProcessing:
   lawTask: ProdTask
-  workflow: local
+  workflow: htcondor
   bootstrap: bootstrap.sh
-#  requirements: ( (OpSysAndVer =?= "CentOS7") || (OpSysAndVer =?= "CentOS8") )
+  requirements: TARGET.OpSysAndVer =?= "AlmaLinux9"
+  maxParallelJobs: 1000
+  maxRuntime: 24 # hours
 targetOutputFileSize: 2048 # MiB
 renewKerberosTicket: True
 whitelistFinalRecovery:
